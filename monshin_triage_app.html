@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>生活についての質問（トリアージ版）— 旭川赤十字病院 血液腫瘍内科</title>
+<style>
+/* ===== Wong colorblind-safe palette（確定事項） ===== */
+:root{
+  --blue:#0072B2; --amber:#E69F00; --teal:#009E73; --verm:#D55E00; --pink:#CC79A7;
+  --ink:#1a1a1a; --sub:#555; --line:#d9d9d9; --bg:#ffffff; --panel:#f5f7fa;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+  font-size:20px; line-height:1.6;}
+#app{max-width:820px;margin:0 auto;padding:16px 20px 48px;min-height:100vh;display:flex;flex-direction:column;}
+
+.hdr{display:flex;align-items:center;gap:12px;padding:8px 0 14px;border-bottom:3px solid var(--blue);margin-bottom:18px;}
+.hdr .sec{font-size:22px;font-weight:700;color:var(--blue);}
+.hdr .dots{margin-left:auto;display:flex;gap:6px;}
+.hdr .dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--blue);background:#fff;transition:background .4s ease, transform .3s ease;}
+.hdr .dot.on{background:var(--blue);}
+.hdr .dot.cur{transform:scale(1.35);}
+.banner{background:#fdf3e0;border:2px solid var(--amber);border-radius:12px;padding:10px 14px;font-size:18px;margin-bottom:16px;}
+.banner b{color:#8a5b00;}
+
+.qtext{font-size:28px;font-weight:700;margin:10px 0 6px;}
+.qhelp{font-size:19px;color:var(--sub);margin-bottom:18px;}
+.btn{display:block;width:100%;min-height:64px;font-size:23px;font-weight:700;
+  border-radius:14px;border:3px solid var(--line);background:#fff;color:var(--ink);
+  padding:14px 18px;margin:12px 0;text-align:left;cursor:pointer;
+  transition:transform .12s ease, background .15s ease, border-color .15s ease;}
+.btn:active{transform:scale(.985);background:var(--panel);}
+.btn .num{display:inline-block;width:38px;height:38px;line-height:34px;text-align:center;border-radius:50%;
+  border:3px solid var(--blue);color:var(--blue);margin-right:14px;font-size:20px;vertical-align:middle;}
+.btn.o2 .num{border-color:var(--amber);color:#8a5b00;}
+.btn.o3 .num{border-color:var(--verm);color:var(--verm);}
+.btn.o4 .num{border-color:var(--pink);color:var(--pink);}
+.btn.sel{border-color:var(--blue);background:#e8f2fa;}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);text-align:center;}
+.btn.secondary{background:#fff;color:var(--blue);border-color:var(--blue);text-align:center;}
+.btn.small{min-height:52px;font-size:19px;}
+.btn:disabled{opacity:.4;}
+.row2{display:flex;gap:12px;}
+.row2 .btn{flex:1;}
+.footer-nav{margin-top:auto;padding-top:22px;display:flex;gap:12px;}
+.linkbtn{background:none;border:none;color:var(--sub);font-size:17px;text-decoration:underline;cursor:pointer;padding:10px;}
+.speak{background:#fff;border:2px solid var(--teal);color:var(--teal);border-radius:10px;
+  font-size:17px;font-weight:700;padding:8px 14px;cursor:pointer;margin-bottom:10px;}
+
+.chk{display:flex;align-items:center;gap:14px;}
+.chk .box{width:34px;height:34px;border:3px solid var(--blue);border-radius:8px;flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;background:#fff;}
+.chk.sel .box{background:var(--blue);}
+.chk.sel{border-color:var(--blue);background:#e8f2fa;}
+
+/* ===== やさしいアニメーション（認知評価中は停止） ===== */
+.fade{animation:fadein .3s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+@keyframes riseIn{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+@keyframes pop{0%{transform:scale(1);}40%{transform:scale(1.04);}100%{transform:scale(1);}}
+@keyframes floaty{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+@keyframes bloom{0%{transform:scale(.3);opacity:0;}70%{transform:scale(1.15);}100%{transform:scale(1);opacity:1;}}
+@keyframes flipIn{from{opacity:0;transform:perspective(600px) rotateY(80deg);}to{opacity:1;transform:none;}}
+.btn.picked{animation:pop .3s ease;border-color:var(--blue);background:#e8f2fa;}
+.fade .btn{animation:riseIn .35s ease backwards;}
+.fade .btn:nth-of-type(1){animation-delay:.05s;} .fade .btn:nth-of-type(2){animation-delay:.12s;}
+.fade .btn:nth-of-type(3){animation-delay:.19s;} .fade .btn:nth-of-type(4){animation-delay:.26s;}
+.fade .btn:nth-of-type(5){animation-delay:.33s;} .fade .btn:nth-of-type(6){animation-delay:.40s;}
+.qicon{font-size:60px;text-align:center;margin:0 0 6px;animation:floaty 3.5s ease-in-out infinite;}
+.bigcheck{font-size:64px;color:var(--teal);text-align:center;margin:20px 0 6px;animation:bloom .6s ease;}
+.wordcard{display:inline-block;min-width:160px;margin:10px;padding:26px 18px;border:3px solid var(--blue);
+  border-radius:16px;font-size:34px;font-weight:800;text-align:center;background:#fff;}
+.wordcard.reveal{animation:flipIn .5s ease backwards;}
+.noanim .fade{animation:none;}
+.noanim .fade .btn,.noanim .qicon{animation:none;}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
+
+#clockwrap{border:3px solid var(--ink);border-radius:8px;background:#fff;touch-action:none;}
+canvas{display:block;background:#fff;}
+
+.spanel{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:14px 16px;margin:14px 0;font-size:18px;}
+.spanel h3{margin:0 0 8px;font-size:20px;color:var(--blue);border-bottom:2px solid var(--line);padding-bottom:4px;}
+table.sm{width:100%;border-collapse:collapse;font-size:17px;}
+table.sm th,table.sm td{border:1px solid var(--line);padding:6px 8px;text-align:left;background:#fff;}
+table.sm th{background:#eef3f8;}
+.alert{display:flex;gap:10px;align-items:flex-start;border:3px solid var(--verm);background:#fdf0e8;
+  border-radius:10px;padding:10px 12px;margin:8px 0;font-size:18px;font-weight:600;}
+.alert .ic{font-size:22px;flex:none;}
+.info{display:flex;gap:10px;align-items:flex-start;border:3px solid var(--teal);background:#e9f7f2;
+  border-radius:10px;padding:10px 12px;margin:8px 0;font-size:18px;}
+.warnbox{border:3px solid var(--amber);background:#fdf3e0;border-radius:10px;padding:10px 12px;margin:8px 0;font-size:18px;font-weight:600;}
+.modebox{border:3px solid var(--blue);background:#e8f2fa;border-radius:10px;padding:10px 14px;margin:8px 0;font-size:19px;font-weight:700;}
+pre.payload{font-size:13px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;}
+input[type=text],input[type=url],input[type=password],select{width:100%;font-size:22px;padding:12px;border:3px solid var(--line);border-radius:10px;margin:6px 0 14px;background:#fff;}
+label.fl{font-size:18px;font-weight:700;color:var(--sub);}
+.center{text-align:center;}
+.affil{font-size:15px;color:var(--sub);text-align:center;margin-top:18px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+'use strict';
+/* =====================================================================
+   高齢DLBCL 患者・家族入力型 問診アプリ【トリアージ版】（方式B）
+   旭川赤十字病院 血液腫瘍内科
+
+   「全員に全部聞く」→「必要な人に必要な深さだけ聞く」
+   ┌──────────┬─────────┬───────────────────┬──────────────────────────────┐
+   │ モード    │ 所要時間 │ 対象               │ 内容                          │
+   ├──────────┼─────────┼───────────────────┼──────────────────────────────┤
+   │ 超短縮    │ 1〜2分  │ 全例               │ 6問トリアージ                  │
+   │ 標準      │ 3〜5分  │ 何か引っかかった人  │ ADL/IADL要点・栄養・服薬・     │
+   │          │         │                    │ 通院・生活背景                 │
+   │ 詳細      │ 7〜10分 │ 85歳以上／認知懸念／│ Mini-Cog・詳細ADL/IADL・       │
+   │          │         │ 支援不足           │ 生活背景全項目                 │
+   └──────────┴─────────┴───────────────────┴──────────────────────────────┘
+   - 判定は自動（医療者が上書き可能）。患者にはモード名・分類を表示しない
+   - 方式B：研究ID＋問診データのみ送信。3択元値保持・sGA時のみ2値化
+   - GAS保存プロキシは monshin_gas_proxy.gs をそのまま使用可（動的ヘッダー）
+===================================================================== */
+
+var LSKEY = 'monshinTriage_settings_v1';
+var APP_VERSION = 'triage-B-1.0';
+
+/* ---------------- 状態 ---------------- */
+var S = {
+  researchId:'', gasUrl:'', staffCode:'0000',
+  ageBand:'', modeOverride:'auto',    // auto | short | standard | detail
+  mode:null,                          // 入力者: self | family | staff | both
+  raw:{}, iadlReason:{}, ext:{}, cogMulti:{},
+  acuteSymptoms:[], acuteTiming:null,
+  mc:{skipped:false, wordset:null, words:[], recall:[false,false,false], clock:null, redoUsed:false, done:false},
+  staffMemo:'', idx:0, hist:[], sent:false
+};
+(function loadSettings(){
+  try{
+    var s = JSON.parse(localStorage.getItem(LSKEY)||'{}');
+    if(s.gasUrl) S.gasUrl = s.gasUrl;
+    if(s.staffCode) S.staffCode = s.staffCode;
+  }catch(e){}
+})();
+function saveSettings(){
+  try{ localStorage.setItem(LSKEY, JSON.stringify({gasUrl:S.gasUrl, staffCode:S.staffCode})); }catch(e){}
+}
+
+/* ---------------- 6問トリアージ ---------------- */
+var TRIAGE = [
+  {id:'ext_triage_q1', domain:'adl', flagOn:['no','unknown'],
+   qs:'病気で悪くなる前、身の回りのこと（入浴・着替え・トイレなど）は、ひとりでできていましたか？',
+   qf:'病気で悪くなる前、患者さんは身の回りのことをひとりでできていましたか？',
+   icon:'🛁',
+   opts:[{v:'yes',t:'できていた',cls:''},{v:'no',t:'手伝いが必要だった',cls:'o3'},{v:'unknown',t:'わからない',cls:'o4'}]},
+  {id:'ext_triage_q2', domain:'iadl', flagOn:['yes','unknown'],
+   qs:'病気で悪くなる前から、薬の管理・通院・買い物・お金の管理のどれかに、支援が必要でしたか？',
+   qf:'病気で悪くなる前から、患者さんは薬の管理・通院・買い物・お金の管理のどれかに支援が必要でしたか？',
+   icon:'💊',
+   opts:[{v:'no',t:'必要なかった',cls:''},{v:'yes',t:'支援が必要だった',cls:'o3'},{v:'unknown',t:'わからない',cls:'o4'}]},
+  {id:'ext_triage_q3', domain:'nut', flagOn:['yes','unknown'],
+   qs:'最近3か月で、食事の量が減ったり、体重が減ったりしましたか？',
+   qf:'最近3か月で、患者さんの食事の量や体重が減りましたか？',
+   icon:'⚖️',
+   opts:[{v:'no',t:'変わらない',cls:''},{v:'yes',t:'減った',cls:'o3'},{v:'unknown',t:'わからない',cls:'o4'}]},
+  {id:'ext_triage_q4', domain:'cog', flagOn:['yes','unknown'],
+   qs:'もの忘れや、判断に不安がありますか？',
+   qf:'患者さんのもの忘れや判断に、心配なことはありますか？',
+   icon:'💭',
+   opts:[{v:'no',t:'ない',cls:''},{v:'yes',t:'ある・心配なことがある',cls:'o3'},{v:'unknown',t:'わからない',cls:'o4'}]},
+  {id:'ext_triage_q5', domain:'soc', flagOn:['yes','unknown'],
+   qs:'ひとり暮らし、または通院を手伝ってくれる人がいない状況ですか？',
+   qf:'患者さんは、ひとり暮らし、または通院を手伝える人がいない状況ですか？',
+   icon:'🏠',
+   opts:[{v:'no',t:'いいえ（支えてくれる人がいる）',cls:''},{v:'yes',t:'はい（あてはまる）',cls:'o3'},{v:'unknown',t:'わからない',cls:'o4'}]},
+  {id:'ext_triage_q6', domain:'acute', flagOn:['yes','unknown'],
+   qs:'最近1〜2か月で、急に歩けなくなった・寝ている時間が増えた・発熱が続く、などはありますか？',
+   qf:'最近1〜2か月で、患者さんに急な変化（歩けない・寝ている時間が増えた・発熱が続く など）はありますか？',
+   icon:'📈',
+   opts:[{v:'no',t:'ない',cls:''},{v:'yes',t:'ある',cls:'o3'},{v:'unknown',t:'わからない',cls:'o4'}]}
+];
+function triageFlag(domain){
+  var t = TRIAGE.filter(function(x){return x.domain===domain;})[0];
+  var v = S.ext[t.id];
+  return v!=null && t.flagOn.indexOf(v)>=0;
+}
+function anyFlag(){
+  return TRIAGE.some(function(t){ var v=S.ext[t.id]; return v!=null && t.flagOn.indexOf(v)>=0; });
+}
+/* モード判定：85歳以上・認知懸念・支援不足 → 詳細／何か該当 → 標準／該当なし → 超短縮 */
+function modeAuto(){
+  if(S.ageBand==='85+' || triageFlag('cog') || triageFlag('soc')) return 'detail';
+  if(anyFlag()) return 'standard';
+  return 'short';
+}
+function modeFinal(){
+  return (S.modeOverride && S.modeOverride!=='auto') ? S.modeOverride : modeAuto();
+}
+function modeReasons(){
+  var r = [];
+  if(S.ageBand==='85+') r.push('85歳以上');
+  if(triageFlag('cog')) r.push('認知懸念（Q4）');
+  if(triageFlag('soc')) r.push('支援不足・独居（Q5）');
+  if(triageFlag('adl')) r.push('発症前ADL低下（Q1）');
+  if(triageFlag('iadl')) r.push('発症前IADL支援（Q2）');
+  if(triageFlag('nut')) r.push('食事量・体重減少（Q3）');
+  if(triageFlag('acute')) r.push('急性の変化（Q6）');
+  return r;
+}
+var MODE_LABEL = {short:'超短縮（トリアージのみ・1〜2分）', standard:'標準（要点確認・3〜5分）', detail:'詳細（フル評価・7〜10分）'};
+
+/* ---------------- 質問定義（要点＝CORE／詳細追加＝EXT） ---------------- */
+var OPT3 = [
+  {v:2, t:'ひとりでできる', cls:''},
+  {v:1, t:'少し手伝いが必要', cls:'o2'},
+  {v:0, t:'ほとんど、または全部手伝いが必要', cls:'o3'}
+];
+var OPT3I = [
+  {v:2, t:'ひとりでできる', cls:''},
+  {v:1, t:'一部手伝いがあればできる', cls:'o2'},
+  {v:0, t:'できない、または普段していない', cls:'o3'}
+];
+/* ADL要点3項目（標準）＋残り3項目（詳細） */
+var ADL_CORE = [
+  {id:'adl_bath', label:'入浴',
+   qs:'普段、おふろやシャワーに、ひとりで入れますか？',
+   qf:'普段、患者さんは、おふろやシャワーにひとりで入れますか？',
+   help:'手すりを使う場合も「ひとりでできる」に含みます。'},
+  {id:'adl_toilet', label:'トイレ',
+   qs:'普段、トイレでの動作（移動・衣服の上げ下ろし）は、ひとりでできますか？',
+   qf:'普段、患者さんは、トイレでの動作をひとりでできますか？'},
+  {id:'adl_transfer', label:'移動（ベッド・椅子）',
+   qs:'普段、ベッドや布団から起き上がって、椅子に移ることは、ひとりでできますか？',
+   qf:'普段、患者さんは、ベッドから椅子への移動をひとりでできますか？',
+   help:'杖や手すりを使う場合も「ひとりでできる」に含みます。'}
+];
+var ADL_EXT = [
+  {id:'adl_dress', label:'着替え',
+   qs:'普段、服の着替えは、ひとりでできますか？',
+   qf:'普段、患者さんは、服の着替えをひとりでできますか？'},
+  {id:'adl_continence', label:'排泄',
+   qs:'トイレに間に合わず、失敗してしまうことはありますか？',
+   qf:'患者さんが、トイレに間に合わず失敗してしまうことはありますか？',
+   opts:[{v:2,t:'ほとんどない',cls:''},{v:1,t:'ときどきある',cls:'o2'},{v:0,t:'よくある',cls:'o3'}]},
+  {id:'adl_feeding', label:'食事の動作',
+   qs:'普段、食事は、ひとりで食べられますか？',
+   qf:'普段、患者さんは、食事をひとりで食べられますか？'}
+];
+/* IADL要点4項目（標準）＋残り4項目（詳細） */
+var IADL_CORE = [
+  {id:'iadl_shopping', label:'買い物',
+   qs:'普段、ご自身で買い物に行けますか？',
+   qf:'普段、患者さんは、ご自身で買い物に行けますか？'},
+  {id:'iadl_meds', label:'薬の管理',
+   qs:'普段、お薬を決められたとおりに、ご自身で飲めていますか？',
+   qf:'普段、患者さんは、お薬をご自身で管理して飲めていますか？'},
+  {id:'iadl_finance', label:'お金の管理',
+   qs:'普段、お金の管理（支払い・銀行など）をご自身でしていますか？',
+   qf:'普段、患者さんは、お金の管理をご自身でしていますか？'},
+  {id:'iadl_transport', label:'移動・交通',
+   qs:'普段、バス・電車・車などで、ひとりで外出できますか？',
+   qf:'普段、患者さんは、バス・電車・車などでひとりで外出できますか？'}
+];
+var IADL_EXT = [
+  {id:'iadl_phone', label:'電話・連絡',
+   qs:'普段、電話をかけたり、受けたりできますか？',
+   qf:'普段、患者さんは、電話をかけたり受けたりできますか？'},
+  {id:'iadl_food', label:'食事の準備',
+   qs:'普段、ご自身で食事の準備（調理）をしていますか？',
+   qf:'普段、患者さんは、ご自身で食事の準備をしていますか？'},
+  {id:'iadl_housekeep', label:'家事',
+   qs:'普段、掃除などの家事をご自身でしていますか？',
+   qf:'普段、患者さんは、掃除などの家事をご自身でしていますか？'},
+  {id:'iadl_laundry', label:'洗濯',
+   qs:'普段、洗濯をご自身でしていますか？',
+   qf:'普段、患者さんは、洗濯をご自身でしていますか？'}
+];
+var IADL_REASONS = [
+  {v:'family_role', t:'もともと家族が担当している', cls:''},
+  {v:'physical',    t:'体力的に難しい', cls:'o2'},
+  {v:'cognitive',   t:'覚えたり、判断したりが難しい', cls:'o4'},
+  {v:'acute',       t:'病気になってから、急に難しくなった', cls:'o3'}
+];
+/* 栄養要点4（標準）＋詳細追加3 */
+var NUT_CORE = [
+  {id:'ext_nut_wtloss', label:'体重の変化',
+   qs:'最近3か月で、体重はどのくらい減りましたか？', qf:'最近3か月で、患者さんの体重はどのくらい減りましたか？',
+   opts:[{v:'none',t:'減っていない',cls:''},{v:'1-3kg',t:'1〜3kgくらい減った',cls:'o2'},{v:'3kg+',t:'3kg以上減った',cls:'o3'},{v:'unknown',t:'わからない',cls:'o4'}]},
+  {id:'ext_nut_intake', label:'食事の量',
+   qs:'最近、食事の量は減っていますか？', qf:'最近、患者さんの食事の量は減っていますか？',
+   opts:[{v:'normal',t:'いつも通り食べている',cls:''},{v:'half',t:'半分くらいに減った',cls:'o2'},{v:'little',t:'ほとんど食べられない',cls:'o3'},{v:'varies',t:'日によって大きく違う',cls:'o4'}]},
+  {id:'ext_nut_appetite', label:'食欲',
+   qs:'最近、食欲はありますか？', qf:'最近、患者さんに食欲はありますか？',
+   opts:[{v:'good',t:'ある',cls:''},{v:'reduced',t:'少し落ちている',cls:'o2'},{v:'poor',t:'ほとんどない',cls:'o3'}]},
+  {id:'ext_nut_chew', label:'噛む・飲み込む',
+   qs:'噛むことや、飲み込むことに困ることはありますか？', qf:'患者さんは、噛むことや飲み込むことに困ることはありますか？',
+   opts:[{v:'none',t:'ない',cls:''},{v:'mild',t:'少しある',cls:'o2'},{v:'clear',t:'はっきりある',cls:'o3'}]}
+];
+var NUT_EXT = [
+  {id:'ext_nut_choke', label:'むせ',
+   qs:'食事や飲み物で、むせることはありますか？', qf:'患者さんは、食事や飲み物でむせることはありますか？',
+   opts:[{v:'none',t:'ない',cls:''},{v:'sometimes',t:'ときどきある',cls:'o2'},{v:'often',t:'よくある',cls:'o3'}]},
+  {id:'ext_nut_meals', label:'1日の食事回数',
+   qs:'1日に何食、食べていますか？', qf:'患者さんは、1日に何食食べていますか？',
+   opts:[{v:'3',t:'3食',cls:''},{v:'2',t:'2食',cls:'o2'},{v:'1',t:'1食以下',cls:'o3'},{v:'irregular',t:'決まっていない',cls:'o4'}]},
+  {id:'ext_nut_cook', label:'食事を用意する人',
+   qs:'普段、食事を用意するのは、どなたですか？', qf:'普段、患者さんの食事を用意するのは、どなたですか？',
+   opts:[{v:'self',t:'自分',cls:''},{v:'family',t:'家族',cls:'o2'},{v:'service',t:'配食サービス・ヘルパー',cls:'o4'},{v:'other',t:'その他',cls:'o3'}]}
+];
+/* 服薬・通院要点3（標準）＋詳細追加3 */
+var MED_CORE = [
+  {id:'ext_med_self', label:'薬の管理',
+   qs:'お薬は、ご自身で管理していますか？', qf:'患者さんのお薬は、どなたが管理していますか？',
+   opts:[{v:'self',t:'自分で管理している',cls:''},{v:'with_family',t:'家族と一緒に管理している',cls:'o2'},{v:'family',t:'家族が管理している',cls:'o2'},{v:'not_managed',t:'きちんと管理できていない',cls:'o3'}]},
+  {id:'ext_med_access', label:'通院の手段',
+   qs:'病院へ通う手段はありますか？', qf:'患者さんが病院へ通う手段はありますか？',
+   opts:[{v:'self',t:'自分で来られる（運転・バス・電車など）',cls:''},{v:'family',t:'家族に送ってもらう',cls:'o2'},{v:'taxi',t:'タクシーなどを使う',cls:'o2'},{v:'difficult',t:'手段に困っている',cls:'o3'}]},
+  {id:'ext_med_fever', label:'急な発熱のとき',
+   qs:'急に熱が出たとき、病院へ連絡したり、受診したりできますか？', qf:'患者さんが急に発熱したとき、病院へ連絡・受診できますか？',
+   opts:[{v:'yes',t:'できる',cls:''},{v:'with_help',t:'家族に頼めばできる',cls:'o2'},{v:'difficult',t:'難しい',cls:'o3'},{v:'unknown',t:'わからない',cls:'o4'}]}
+];
+var MED_EXT = [
+  {id:'ext_med_count', label:'薬の種類',
+   qs:'普段飲んでいるお薬は、何種類くらいありますか？', qf:'患者さんが普段飲んでいるお薬は、何種類くらいありますか？',
+   opts:[{v:'0',t:'飲んでいない',cls:''},{v:'1-4',t:'1〜4種類',cls:''},{v:'5-9',t:'5〜9種類',cls:'o2'},{v:'10+',t:'10種類以上',cls:'o3'},{v:'unknown',t:'わからない',cls:'o4'}]},
+  {id:'ext_med_miss', label:'飲み忘れ',
+   qs:'お薬の飲み忘れはありますか？', qf:'患者さんに、お薬の飲み忘れはありますか？',
+   opts:[{v:'rare',t:'ほとんどない',cls:''},{v:'sometimes',t:'ときどきある',cls:'o2'},{v:'often',t:'よくある',cls:'o3'}]},
+  {id:'ext_med_night', label:'夜間・休日の支え',
+   qs:'夜間や休日に、助けを呼べる人はいますか？', qf:'夜間や休日に、患者さんが助けを呼べる人はいますか？',
+   opts:[{v:'yes',t:'いる',cls:''},{v:'no',t:'いない',cls:'o3'},{v:'unknown',t:'わからない',cls:'o4'}]}
+];
+/* 認知エピソード（Q4該当または詳細） */
+var COG_MULTI = [
+  {id:'ext_cog_meds',    t:'薬の飲み忘れがある'},
+  {id:'ext_cog_repeat',  t:'同じことを何度も聞く'},
+  {id:'ext_cog_schedule',t:'予定を忘れる'},
+  {id:'ext_cog_money',   t:'お金の管理が難しくなった'},
+  {id:'ext_cog_explain', t:'病院の説明を覚えておくのが難しい'},
+  {id:'ext_cog_night',   t:'夜間に混乱することがある'}
+];
+var WORD_SETS = {A:['さくら','電車','みかん'], B:['新聞','時計','りんご'], C:['山','財布','犬']};
+/* 生活背景要点5（標準）＋詳細追加4 */
+var SOC_CORE = [
+  {id:'ext_soc_alone', label:'お住まい',
+   qs:'ひとり暮らしですか？', qf:'患者さんは、ひとり暮らしですか？',
+   opts:[{v:'yes',t:'はい（ひとり暮らし）',cls:'o2'},{v:'no',t:'いいえ（同居家族がいる）',cls:''}]},
+  {id:'ext_soc_support', label:'支えてくれる人',
+   qs:'治療や通院を手伝ってくれる人はいますか？', qf:'患者さんの治療や通院を手伝える方はいますか？',
+   opts:[{v:'yes',t:'いる',cls:''},{v:'no',t:'いない',cls:'o3'},{v:'unknown',t:'わからない',cls:'o4'}]},
+  {id:'ext_soc_emergency', label:'緊急連絡先',
+   qs:'緊急のとき、連絡できる人はいますか？', qf:'緊急のとき、患者さんについて連絡できる方はいますか？',
+   opts:[{v:'yes',t:'いる',cls:''},{v:'no',t:'いない',cls:'o3'}]},
+  {id:'ext_soc_kaigo', label:'介護保険',
+   qs:'介護保険のサービスを利用していますか？', qf:'患者さんは、介護保険のサービスを利用していますか？',
+   opts:[{v:'using',t:'利用している',cls:''},{v:'applying',t:'申請中',cls:'o2'},{v:'no',t:'利用していない',cls:'o2'},{v:'unknown',t:'わからない',cls:'o4'}]},
+  {id:'ext_soc_transport', label:'病院までの交通',
+   qs:'病院までは、どうやって来られますか？', qf:'患者さんは、病院までどうやって来られますか？',
+   opts:[{v:'walk',t:'徒歩・自転車',cls:''},{v:'drive',t:'自分で運転',cls:''},{v:'public',t:'バス・電車',cls:''},{v:'family',t:'家族の送迎',cls:'o2'},{v:'taxi',t:'タクシー',cls:'o2'},{v:'other',t:'その他',cls:'o4'}]}
+];
+var SOC_EXT = [
+  {id:'ext_soc_caremgr', label:'ケアマネージャー',
+   qs:'ケアマネージャーはいますか？', qf:'患者さんに、ケアマネージャーはいますか？',
+   opts:[{v:'yes',t:'いる',cls:''},{v:'no',t:'いない',cls:'o2'},{v:'unknown',t:'わからない',cls:'o4'}]},
+  {id:'ext_soc_visitnurse', label:'訪問看護',
+   qs:'訪問看護を利用していますか？', qf:'患者さんは、訪問看護を利用していますか？',
+   opts:[{v:'yes',t:'利用している',cls:''},{v:'no',t:'利用していない',cls:''}]},
+  {id:'ext_soc_stairs', label:'自宅の階段',
+   qs:'ご自宅に階段はありますか？', qf:'患者さんのご自宅に階段はありますか？',
+   opts:[{v:'yes',t:'ある',cls:'o2'},{v:'no',t:'ない',cls:''}]},
+  {id:'ext_soc_fall', label:'転倒',
+   qs:'この1年で、ご自宅の中で転んだことはありますか？', qf:'この1年で、患者さんがご自宅の中で転んだことはありますか？',
+   opts:[{v:'yes',t:'ある',cls:'o3'},{v:'no',t:'ない',cls:''},{v:'unknown',t:'わからない',cls:'o4'}]}
+];
+var ACUTE_SYMPTOMS = [
+  {id:'walk',    t:'歩くのが難しくなった'},
+  {id:'eat',     t:'食事の量が減った'},
+  {id:'sleep',   t:'寝ている時間が増えた'},
+  {id:'fever',   t:'発熱が続いている'},
+  {id:'pain',    t:'痛みが強くなった'},
+  {id:'weight',  t:'体重が減った'},
+  {id:'dyspnea', t:'息切れが増えた'},
+  {id:'none',    t:'特に変化はない'}
+];
+var ACUTE_TIMING = [
+  {v:'1w',  t:'1週間以内', cls:'o3'},
+  {v:'2-4w',t:'2〜4週間前から', cls:'o3'},
+  {v:'1-3m',t:'1〜3か月前から', cls:'o2'},
+  {v:'6m+', t:'半年以上前から', cls:''},
+  {v:'unknown',t:'わからない', cls:'o4'}
+];
+var ICONS = {
+  adl_bath:'🛁', adl_dress:'👕', adl_toilet:'🚻', adl_transfer:'🛏️', adl_continence:'🚽', adl_feeding:'🍚',
+  iadl_phone:'📞', iadl_shopping:'🛒', iadl_food:'🍳', iadl_housekeep:'🧹', iadl_laundry:'🧺',
+  iadl_transport:'🚌', iadl_meds:'💊', iadl_finance:'💴',
+  ext_nut_wtloss:'⚖️', ext_nut_intake:'🍚', ext_nut_appetite:'😋', ext_nut_choke:'🥤',
+  ext_nut_chew:'🦷', ext_nut_meals:'🍽️', ext_nut_cook:'🍳',
+  ext_med_count:'💊', ext_med_self:'📦', ext_med_miss:'⏰', ext_med_access:'🚗',
+  ext_med_fever:'🌡️', ext_med_night:'🌙',
+  ext_soc_alone:'🏠', ext_soc_support:'🤝', ext_soc_emergency:'📞', ext_soc_kaigo:'📋',
+  ext_soc_caremgr:'🧑‍⚕️', ext_soc_visitnurse:'🚑', ext_soc_stairs:'🪜', ext_soc_fall:'🦶', ext_soc_transport:'🚌'
+};
+var ALL_ADL = ADL_CORE.concat(ADL_EXT);
+var ALL_IADL = IADL_CORE.concat(IADL_EXT);
+
+/* ---------------- 画面フロー（cond付き：モードに応じて動的スキップ） ---------------- */
+function mNotShort(){ return modeFinal()!=='short'; }
+function mDetail(){ return modeFinal()==='detail'; }
+var FLOW = [];
+function buildFlow(){
+  FLOW = [];
+  FLOW.push({kind:'setup'});
+  FLOW.push({kind:'start'});
+  FLOW.push({kind:'respondent'});
+  TRIAGE.forEach(function(t,i){
+    FLOW.push({kind:'choice', item:t, store:'ext', sec:'最初の質問', pos:[i,TRIAGE.length], opts:t.opts, triage:true});
+  });
+  /* 標準：要点モジュール */
+  ADL_CORE.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'raw', sec:'普段の生活の動作について', pos:[i,3], opts:it.opts||OPT3, cond:mNotShort}); });
+  ADL_EXT.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'raw', sec:'生活の動作（つづき）', pos:[i,3], opts:it.opts||OPT3, cond:mDetail}); });
+  IADL_CORE.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'raw', sec:'日常の用事について', pos:[i,4], opts:OPT3I, iadl:true, cond:mNotShort}); });
+  IADL_EXT.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'raw', sec:'日常の用事（つづき）', pos:[i,4], opts:OPT3I, iadl:true, cond:mDetail}); });
+  NUT_CORE.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'ext', sec:'食事と体重について', pos:[i,4], opts:it.opts, cond:mNotShort}); });
+  NUT_EXT.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'ext', sec:'食事と体重（つづき）', pos:[i,3], opts:it.opts, cond:mDetail}); });
+  MED_CORE.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'ext', sec:'お薬と通院について', pos:[i,3], opts:it.opts, cond:mNotShort}); });
+  MED_EXT.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'ext', sec:'お薬と通院（つづき）', pos:[i,3], opts:it.opts, cond:mDetail}); });
+  FLOW.push({kind:'cogmulti', sec:'もの忘れについて', pos:[0,1],
+    cond:function(){ return mDetail() || (mNotShort() && triageFlag('cog')); }});
+  FLOW.push({kind:'mc_intro',  cond:mDetail});
+  FLOW.push({kind:'mc_words',  cond:function(){ return mDetail() && !S.mc.skipped; }});
+  FLOW.push({kind:'mc_clock',  cond:function(){ return mDetail() && !S.mc.skipped; }});
+  FLOW.push({kind:'mc_recall', cond:function(){ return mDetail() && !S.mc.skipped; }});
+  FLOW.push({kind:'mc_staff',  cond:function(){ return mDetail() && !S.mc.skipped; }});
+  SOC_CORE.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'ext', sec:'暮らしの様子について', pos:[i,5], opts:it.opts, cond:mNotShort}); });
+  SOC_EXT.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'ext', sec:'暮らしの様子（つづき）', pos:[i,4], opts:it.opts, cond:mDetail}); });
+  FLOW.push({kind:'acute_sym', sec:'最近の変化について', pos:[0,2],
+    cond:function(){ return mNotShort() && triageFlag('acute'); }});
+  FLOW.push({kind:'acute_time', sec:'最近の変化について', pos:[1,2],
+    cond:function(){ return mNotShort() && triageFlag('acute') && S.acuteSymptoms.filter(function(x){return x!=='none';}).length>0; }});
+  FLOW.push({kind:'confirm'});
+  FLOW.push({kind:'done'});
+  FLOW.push({kind:'summary'});
+}
+buildFlow();
+
+/* ---------------- ユーティリティ ---------------- */
+var app = document.getElementById('app');
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function speak(text){
+  try{
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ja-JP'; u.rate = 0.85;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function qText(it){ return (S.mode==='family') ? (it.qf||it.qs) : it.qs; }
+function quarterStr(d){ return d.getFullYear() + 'Q' + (Math.floor(d.getMonth()/3)+1); }
+function go(i){ S.hist.push(S.idx); S.idx = i; render(); window.scrollTo(0,0); }
+function next(){
+  var i = S.idx + 1;
+  while(i < FLOW.length-1 && FLOW[i].cond && !FLOW[i].cond()) i++;
+  go(i);
+}
+function back(){
+  if(S.hist.length){ S.idx = S.hist.pop(); render(); window.scrollTo(0,0); }
+}
+var SKIP_ANIM = false;
+function fadeCls(){ var c = SKIP_ANIM ? '' : 'fade'; SKIP_ANIM = false; return c; }
+
+/* ---------------- 集計・2値化 ---------------- */
+function bin(v){ return v===2 ? 1 : 0; }
+function sumOf(items){ var s=0,n=0; items.forEach(function(it){ var v=S.raw[it.id]; if(v!=null){ s+=bin(v); n++; } }); return {sum:s, answered:n}; }
+function adlSum(){ return sumOf(ALL_ADL); }
+function iadlSum(){ return sumOf(ALL_IADL); }
+function mcTotal(){
+  if(S.mc.skipped || !S.mc.done) return null;
+  return S.mc.recall.filter(Boolean).length + (S.mc.clock==null?0:S.mc.clock);
+}
+function drfSuspect(){
+  var reasons = [];
+  var real = S.acuteSymptoms.filter(function(x){return x!=='none';});
+  if(real.length>0 && ['1w','2-4w','1-3m'].indexOf(S.acuteTiming)>=0){
+    reasons.push('急性の機能低下：' + real.map(function(id){
+      var f = ACUTE_SYMPTOMS.filter(function(a){return a.id===id;})[0];
+      return f ? f.t : id;
+    }).join('・') + '（' + timingLabel() + '）');
+  }
+  if(triageFlag('acute') && S.ext.ext_triage_q1==='yes'){
+    reasons.push('発症前は身の回り自立（Q1）＋急な変化あり（Q6）→ 病勢由来の可能性が高い');
+  }
+  ALL_IADL.forEach(function(it){
+    if(S.iadlReason[it.id]==='acute'){
+      reasons.push('IADL「' + it.label + '」が病気になってから急に困難化');
+    }
+  });
+  return reasons;
+}
+function timingLabel(){
+  var f = ACUTE_TIMING.filter(function(t){return t.v===S.acuteTiming;})[0];
+  return f ? f.t : '時期不明';
+}
+function optLabel(list, v){
+  var f = (list||[]).filter(function(o){return o.v===v;})[0];
+  return f ? f.t : (v==null ? '未回答' : String(v));
+}
+
+/* ---------------- アラート ---------------- */
+function buildAlerts(){
+  var A = [];
+  function al(icon, text){ A.push({icon:icon, text:text}); }
+  var a = adlSum(), i = iadlSum(), e = S.ext;
+  if(a.answered>0 && a.sum < a.answered) al('🛁','ADLに介助項目あり（' + a.sum + '/' + a.answered + '聴取分）');
+  if(i.answered>0 && i.sum < i.answered) al('🧺','IADLに介助・困難項目あり（' + i.sum + '/' + i.answered + '聴取分）');
+  if(e.ext_nut_wtloss==='1-3kg' || e.ext_nut_wtloss==='3kg+') al('⚖️','体重減少あり → 栄養士介入・prehabilitation検討');
+  if(e.ext_nut_intake==='half' || e.ext_nut_intake==='little' || e.ext_nut_intake==='varies') al('🍚','食事摂取低下の可能性');
+  if(e.ext_nut_chew==='clear' || e.ext_nut_chew==='mild' || e.ext_nut_choke==='often' || e.ext_nut_choke==='sometimes') al('🥤','嚥下・咀嚼の懸念あり → 誤嚥リスク評価');
+  if(e.ext_med_count==='5-9' || e.ext_med_count==='10+') al('💊','多剤併用（5剤以上）→ 薬剤師介入検討');
+  if(e.ext_med_self==='not_managed') al('💊','服薬管理ができていない → 家族確認・薬剤師介入必要');
+  if(e.ext_med_miss==='often') al('💊','飲み忘れが多い → 服薬支援検討');
+  if(e.ext_med_access==='difficult') al('🚗','通院手段に課題 → 通院支援／初回入院導入検討');
+  if(e.ext_med_fever==='difficult' || e.ext_med_fever==='unknown') al('🌡️','発熱時の緊急受診体制に不安 → FN対策・連絡手順の確認');
+  if(e.ext_med_night==='no') al('🌙','夜間・休日に助けを呼べる人がいない');
+  if(triageFlag('cog')) al('🧠','認知面の懸念（トリアージQ4）');
+  var cogN = COG_MULTI.filter(function(c){return S.cogMulti[c.id];}).length;
+  if(cogN>=2) al('🧠','認知関連の具体的エピソード ' + cogN + '項目 → 精査検討');
+  var mct = mcTotal();
+  if(mct!=null && mct<=2) al('🧠','Mini-Cog ' + mct + '/5点 → 認知機能低下の可能性');
+  if(e.ext_soc_alone==='yes') al('🏠','独居');
+  if(e.ext_soc_support==='no') al('🏠','治療・通院を支援できる人が不在 → MSW介入検討');
+  if(e.ext_soc_emergency==='no') al('📞','緊急連絡先なし → 要確認');
+  if(e.ext_soc_kaigo==='no' && (a.sum<a.answered || i.sum<i.answered)) al('📋','機能低下があるが介護保険未導入 → MSW介入検討');
+  if(e.ext_soc_fall==='yes') al('🦶','自宅内転倒歴あり → 転倒リスク評価');
+  if(drfSuspect().length) al('📈','病勢由来frailty疑い → prephase後の再評価を検討');
+  TRIAGE.forEach(function(t,k){
+    if(S.ext[t.id]==='unknown') al('❓','トリアージQ' + (k+1) + 'が「わからない」→ 医療者による確認必要');
+  });
+  return A;
+}
+
+/* ---------------- ペイロード（方式B） ---------------- */
+function buildPayload(){
+  var p = {
+    research_id: S.researchId,
+    submitted_quarter: quarterStr(new Date()),
+    respondent_mode: S.mode,
+    age_band: S.ageBand,
+    triage_mode_auto: modeAuto(),
+    triage_mode_final: modeFinal(),
+    triage_mode_override: S.modeOverride,
+    app_version: APP_VERSION
+  };
+  TRIAGE.forEach(function(t,k){
+    p[t.id] = S.ext[t.id]!=null ? S.ext[t.id] : '';
+    p['ext_triage_q' + (k+1) + '_flag'] = triageFlag(t.domain) ? 1 : 0;
+  });
+  ALL_ADL.forEach(function(it){
+    var v = S.raw[it.id];
+    p[it.id + '_raw'] = (v==null ? '' : v);
+    p[it.id] = (v==null ? '' : bin(v));
+  });
+  ALL_IADL.forEach(function(it){
+    var v = S.raw[it.id];
+    p[it.id + '_raw'] = (v==null ? '' : v);
+    p[it.id] = (v==null ? '' : bin(v));
+    p['ext_' + it.id + '_reason'] = S.iadlReason[it.id] || '';
+  });
+  Object.keys(S.ext).forEach(function(k){ if(k.indexOf('ext_triage_')!==0) p[k] = S.ext[k]; });
+  COG_MULTI.forEach(function(c){ p[c.id] = S.cogMulti[c.id] ? 1 : 0; });
+  p.ext_acute_symptoms = S.acuteSymptoms.join(';');
+  p.ext_acute_timing = S.acuteTiming || '';
+  p.mc_done = S.mc.done ? 1 : 0;
+  p.mc_skipped = S.mc.skipped ? 1 : 0;
+  p.mc_wordset = S.mc.wordset || '';
+  p.mc_recall = S.mc.done ? S.mc.recall.filter(Boolean).length : '';
+  p.mc_clock = (S.mc.done && S.mc.clock!=null) ? S.mc.clock : '';
+  p.mc_total = (mcTotal()==null ? '' : mcTotal());
+  var a = adlSum(), i = iadlSum();
+  p.adl_sum = a.sum; p.adl_answered = a.answered;
+  p.iadl_sum = i.sum; p.iadl_answered = i.answered;
+  p.drf_suspect_auto = drfSuspect().length ? 1 : 0;
+  p.ext_staff_memo = S.staffMemo || '';
+  p.alerts_auto = buildAlerts().map(function(x){return x.text;}).join(' / ');
+  return p;
+}
+function sendData(cb){
+  var payload = buildPayload();
+  if(!S.gasUrl){ cb(false, 'GAS URLが未設定です（設定画面で入力してください）'); return; }
+  try{
+    fetch(S.gasUrl, {method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'}, body: JSON.stringify(payload)})
+    .then(function(){ S.sent = true; cb(true, ''); })
+    .catch(function(err){ cb(false, String(err)); });
+  }catch(e){ cb(false, String(e)); }
+}
+
+/* ---------------- 描画 ---------------- */
+function header(sec, pos){
+  var dots = '';
+  if(pos){
+    for(var k=0;k<pos[1];k++) dots += '<span class="dot' + (k<=pos[0]?' on':'') + (k===pos[0]?' cur':'') + '"></span>';
+  }
+  return '<div class="hdr"><span class="sec">' + esc(sec) + '</span><span class="dots">' + dots + '</span></div>';
+}
+function familyBanner(){
+  if(S.mode==='family') return '<div class="banner"><b>ご家族の方へ：</b>「病気で悪くなる前」の、普段の患者さんの状態でお答えください。</div>';
+  if(S.mode==='both') return '<div class="banner">ご本人とご家族で、相談しながらお答えください。</div>';
+  return '';
+}
+function navRow(showBack, extra){
+  return '<div class="footer-nav">' +
+    (showBack ? '<button class="linkbtn" onclick="back()">← 前にもどる</button>' : '') +
+    (extra || '') + '</div>';
+}
+
+var RENDERERS = {
+
+  setup: function(){
+    app.innerHTML =
+      header('準備（医療スタッフ用）') +
+      '<p class="qhelp">この画面は医療スタッフが操作してください。氏名・カルテID・生年月日は<b>入力しません</b>。</p>' +
+      '<label class="fl">研究ID（必須）</label>' +
+      '<input type="text" id="rid" autocomplete="off" placeholder="例：AKR-2026-001" value="' + esc(S.researchId) + '">' +
+      '<label class="fl">年齢区分（詳細モード判定に使用）</label>' +
+      '<select id="ageband">' +
+      '<option value=""' + (S.ageBand===''?' selected':'') + '>選択してください</option>' +
+      '<option value="<80"' + (S.ageBand==='<80'?' selected':'') + '>80歳未満</option>' +
+      '<option value="80-84"' + (S.ageBand==='80-84'?' selected':'') + '>80〜84歳</option>' +
+      '<option value="85+"' + (S.ageBand==='85+'?' selected':'') + '>85歳以上（自動的に詳細モード）</option>' +
+      '</select>' +
+      '<label class="fl">モード（通常は自動判定のまま）</label>' +
+      '<select id="movr">' +
+      '<option value="auto"' + (S.modeOverride==='auto'?' selected':'') + '>自動判定（推奨）：トリアージ結果で分岐</option>' +
+      '<option value="short"' + (S.modeOverride==='short'?' selected':'') + '>超短縮に固定（トリアージのみ・1〜2分）</option>' +
+      '<option value="standard"' + (S.modeOverride==='standard'?' selected':'') + '>標準に固定（要点確認・3〜5分）</option>' +
+      '<option value="detail"' + (S.modeOverride==='detail'?' selected':'') + '>詳細に固定（フル評価・7〜10分）</option>' +
+      '</select>' +
+      '<label class="fl">送信先GAS URL（方式B。空欄なら保存なしで動作）</label>' +
+      '<input type="url" id="gurl" autocomplete="off" placeholder="https://script.google.com/macros/s/.../exec" value="' + esc(S.gasUrl) + '">' +
+      '<label class="fl">サマリー閲覧コード（医療者画面のロック用）</label>' +
+      '<input type="password" id="scode" maxlength="8" autocomplete="off" value="' + esc(S.staffCode) + '">' +
+      '<button class="btn primary" onclick="setupDone()">開始画面へすすむ</button>' +
+      '<p class="affil">旭川赤十字病院 血液腫瘍内科　高齢DLBCL治療前評価【トリアージ版】　' + APP_VERSION + '</p>';
+  },
+
+  start: function(){
+    app.innerHTML =
+      '<div class="fade">' +
+      '<h1 style="font-size:30px;color:var(--blue);margin:20px 0 10px;">生活についての質問</h1>' +
+      '<button class="speak" onclick="speak(document.getElementById(\'introtext\').textContent)">🔊 読み上げる</button>' +
+      '<p id="introtext" style="font-size:22px;">これから、普段の生活の様子について、いくつか質問します。' +
+      'まず短い質問が6つあります。多くの方は、それだけで終わります。' +
+      'この質問は、治療を安全に行うために、生活の状況を確認するものです。' +
+      '結果だけで治療方針が決まるわけではありません。医師・看護師が内容を確認し、治療方針を一緒に考えます。</p>' +
+      '<button class="btn primary" onclick="chooseStart(\'self\')">はじめる（ご本人）</button>' +
+      '<button class="btn secondary" onclick="chooseStart(\'family\')">家族が代わりに入力する</button>' +
+      '<button class="btn secondary" onclick="chooseStart(\'staff\')">医療者と一緒に入力する</button>' +
+      '</div>' +
+      '<p class="affil">旭川赤十字病院 血液腫瘍内科</p>';
+  },
+
+  respondent: function(){
+    app.innerHTML =
+      header('入力される方の確認') + '<div class="fade">' +
+      '<p class="qtext">どなたが入力されますか？</p>' +
+      '<button class="btn" onclick="setMode(\'self\')"><span class="num">1</span>患者本人</button>' +
+      '<button class="btn o2" onclick="setMode(\'family\')"><span class="num">2</span>ご家族</button>' +
+      '<button class="btn o4" onclick="setMode(\'both\')"><span class="num">3</span>本人と家族が一緒に回答</button>' +
+      '<button class="btn o3" onclick="setMode(\'staff\')"><span class="num">4</span>医療者が補助して入力</button>' +
+      '</div>' + navRow(true);
+  },
+
+  choice: function(st){
+    var it = st.item, q = qText(it);
+    var cur = (st.store==='raw') ? S.raw[it.id] : S.ext[it.id];
+    var icon = it.icon || ICONS[it.id];
+    var ic = icon ? '<div class="qicon">' + icon + '</div>' : '';
+    var html = header(st.sec, st.pos) + familyBanner() + '<div class="fade">' +
+      '<button class="speak" onclick="speak(' + JSON.stringify(q).replace(/"/g,'&quot;') + ')">🔊 読み上げる</button>' +
+      ic +
+      '<p class="qtext">' + esc(q) + '</p>' +
+      (it.help ? '<p class="qhelp">' + esc(it.help) + '</p>' : '');
+    st.opts.forEach(function(o, k){
+      var sel = (cur===o.v) ? ' sel' : '';
+      html += '<button class="btn ' + (o.cls||'') + sel + '" onclick="answerChoice(' + k + ',this)">' +
+        '<span class="num">' + (k+1) + '</span>' + esc(o.t) + '</button>';
+    });
+    html += '</div>' + navRow(true, st.triage ? '' : '<button class="linkbtn" onclick="skipQ()">この質問をとばす</button>');
+    app.innerHTML = html;
+  },
+
+  cogmulti: function(st){
+    var q = (S.mode==='family') ? '患者さんについて、あてはまるものがあれば教えてください。'
+                                : 'あてはまるものがあれば、教えてください。';
+    var html = header(st.sec, st.pos) + familyBanner() + '<div class="' + fadeCls() + '">' +
+      '<p class="qtext">' + esc(q) + '</p><p class="qhelp">いくつでも選べます。なければ、そのまま「次へ」を押してください。</p>';
+    COG_MULTI.forEach(function(c){
+      var sel = S.cogMulti[c.id] ? ' sel' : '';
+      html += '<button class="btn chk' + sel + '" onclick="toggleCog(\'' + c.id + '\')">' +
+        '<span class="box">' + (S.cogMulti[c.id]?'✓':'') + '</span>' + esc(c.t) + '</button>';
+    });
+    html += '<button class="btn primary" onclick="next()">次へ</button></div>' + navRow(true);
+    app.innerHTML = html;
+  },
+
+  mc_intro: function(){
+    document.body.classList.add('noanim');
+    app.innerHTML =
+      header('記憶と時計の課題') +
+      '<div><p class="qtext">これから、短い記憶の課題と、時計を描く課題を行います。</p>' +
+      '<p class="qhelp">医療スタッフの立ち会いのもとで行うことをおすすめします。' +
+      'ご家族が同席される場合は、<b>答えを教えたり、手伝ったりしないで</b>ください。</p>' +
+      '<button class="btn primary" onclick="mcStart()">課題をはじめる</button>' +
+      '<button class="btn small" onclick="mcSkip()">今回は実施しない（医療者判断）</button>' +
+      '</div>' + navRow(true);
+  },
+
+  mc_words: function(){
+    if(!S.mc.wordset){
+      var keys = Object.keys(WORD_SETS);
+      S.mc.wordset = keys[Math.floor(Math.random()*keys.length)];
+      S.mc.words = WORD_SETS[S.mc.wordset];
+    }
+    var w = S.mc.words;
+    app.innerHTML =
+      header('記憶と時計の課題') +
+      '<div><p class="qtext">これから3つの言葉を覚えてください。<br>あとで、もう一度お聞きします。</p>' +
+      '<button class="speak" onclick="speak(\'' + w.join('、') + '\')">🔊 読み上げる</button>' +
+      '<div class="center">' + w.map(function(x,k){return '<span class="wordcard reveal" style="animation-delay:' + (k*0.55) + 's">' + esc(x) + '</span>';}).join('') + '</div>' +
+      '<p class="qhelp center">声に出して繰り返すと、覚えやすくなります。</p>' +
+      '<button class="btn primary" onclick="next()">覚えました（次へ）</button>' +
+      '</div>' + navRow(false);
+  },
+
+  mc_clock: function(){
+    app.innerHTML =
+      header('記憶と時計の課題') +
+      '<div><p class="qtext" style="font-size:24px;">この白いところに、時計を描いてください。<br>' +
+      '1から12までの数字を入れて、<b>「11時10分」</b>を示すように針を描いてください。</p>' +
+      '<div id="clockwrap"><canvas id="clockcv"></canvas></div>' +
+      '<div class="row2" style="margin-top:14px;">' +
+      '<button class="btn small" id="redoBtn" onclick="clockRedo()">最初から描き直す（1回のみ）</button>' +
+      '<button class="btn primary" onclick="clockDone()">描き終わりました</button>' +
+      '</div></div>';
+    initClock();
+  },
+
+  mc_recall: function(){
+    app.innerHTML =
+      header('記憶と時計の課題') +
+      '<div><p class="qtext">先ほど覚えていただいた<b>3つの言葉</b>を、思い出して、声に出して教えてください。</p>' +
+      '<p class="qhelp">画面には言葉は表示されません。医療スタッフ（またはご家族）が聞き取って記録します。</p>' +
+      '<button class="btn primary" onclick="next()">医療者の記録画面へ</button>' +
+      '</div>';
+  },
+
+  mc_staff: function(){
+    var w = S.mc.words;
+    var html = header('Mini-Cog 記録（医療者用）') +
+      '<div><p class="qhelp">この画面は医療スタッフが操作してください。アプリは自動採点を行いません。</p>' +
+      '<h3 style="font-size:20px;color:var(--blue);">1) 3語再生（言えた言葉にチェック）</h3>';
+    w.forEach(function(word, k){
+      var sel = S.mc.recall[k] ? ' sel' : '';
+      html += '<button class="btn chk small' + sel + '" onclick="toggleRecall(' + k + ')">' +
+        '<span class="box">' + (S.mc.recall[k]?'✓':'') + '</span>' + esc(word) + '</button>';
+    });
+    html += '<h3 style="font-size:20px;color:var(--blue);margin-top:18px;">2) 時計描画（画面上の描画を確認して判定）</h3>' +
+      '<p class="qhelp">2点：数字1〜12がおおむね正しい位置にあり、針が「11時10分」を示している／0点：それ以外。<br>' +
+      '※ 時計の画像は保存されません。スコアのみ記録します。</p>' +
+      '<div class="row2">' +
+      '<button class="btn' + (S.mc.clock===2?' sel':'') + '" onclick="setClockScore(2)"><span class="num">2</span>正常（2点）</button>' +
+      '<button class="btn o3' + (S.mc.clock===0?' sel':'') + '" onclick="setClockScore(0)"><span class="num">0</span>異常（0点）</button>' +
+      '</div>' +
+      '<p style="font-size:20px;font-weight:700;">合計：' + (S.mc.clock==null?'—':(S.mc.recall.filter(Boolean).length + S.mc.clock)) + ' / 5点</p>' +
+      '<button class="btn primary" onclick="mcFinish()" ' + (S.mc.clock==null?'disabled':'') + '>記録して次へ</button>' +
+      '</div>' + navRow(true);
+    app.innerHTML = html;
+  },
+
+  acute_sym: function(st){
+    document.body.classList.remove('noanim');
+    var q = (S.mode==='family')
+      ? '先ほど「急な変化がある」とお答えいただきました。患者さんにあてはまるものを教えてください。'
+      : '先ほど「急な変化がある」とお答えいただきました。あてはまるものを教えてください。';
+    var html = header(st.sec, st.pos) + familyBanner() + '<div class="' + fadeCls() + '">' +
+      '<button class="speak" onclick="speak(' + JSON.stringify(q).replace(/"/g,'&quot;') + ')">🔊 読み上げる</button>' +
+      '<p class="qtext">' + esc(q) + '</p><p class="qhelp">いくつでも選んでください。</p>';
+    ACUTE_SYMPTOMS.forEach(function(c){
+      var sel = S.acuteSymptoms.indexOf(c.id)>=0 ? ' sel' : '';
+      html += '<button class="btn chk' + sel + '" onclick="toggleAcute(\'' + c.id + '\')">' +
+        '<span class="box">' + (S.acuteSymptoms.indexOf(c.id)>=0?'✓':'') + '</span>' + esc(c.t) + '</button>';
+    });
+    html += '<button class="btn primary" onclick="next()">次へ</button></div>' + navRow(true);
+    app.innerHTML = html;
+  },
+
+  acute_time: function(st){
+    var html = header(st.sec, st.pos) + familyBanner() + '<div class="fade">' +
+      '<p class="qtext">それは、いつ頃からですか？</p>';
+    ACUTE_TIMING.forEach(function(o,k){
+      var sel = (S.acuteTiming===o.v)?' sel':'';
+      html += '<button class="btn ' + o.cls + sel + '" onclick="setTiming(\'' + o.v + '\',this)">' +
+        '<span class="num">' + (k+1) + '</span>' + esc(o.t) + '</button>';
+    });
+    html += '</div>' + navRow(true);
+    app.innerHTML = html;
+  },
+
+  confirm: function(){
+    var m = modeFinal();
+    var msg = (m==='short')
+      ? '6つの質問にお答えいただきました。今回は、これで終わりです。'
+      : 'ご回答ありがとうございました。内容は医師・看護師が確認します。';
+    app.innerHTML =
+      header('入力の確認') + '<div class="fade">' +
+      '<p class="qtext">' + esc(msg) + '</p>' +
+      '<p class="qhelp">答えにくかった質問は、あとで医療者と一緒に確認できますので、ご安心ください。</p>' +
+      '<button class="btn primary" onclick="finishInput()">入力を終わる</button>' +
+      '<button class="btn small" onclick="back()">前にもどって直す</button>' +
+      '</div>';
+  },
+
+  done: function(){
+    app.innerHTML =
+      '<div class="fade center">' +
+      '<div class="bigcheck">✅</div>' +
+      '<p class="qtext center">ご協力ありがとうございました。</p>' +
+      '<p class="qhelp" style="font-size:20px;">入力いただいた内容は、医師・看護師が確認し、<br>' +
+      'あなたに合った治療の進め方を、一緒に考えるために使います。<br>端末を医療スタッフへお返しください。</p>' +
+      '</div>' +
+      '<div class="footer-nav"><button class="linkbtn" onclick="openSummary()">医療者用サマリー（スタッフのみ）</button></div>' +
+      '<p class="affil">旭川赤十字病院 血液腫瘍内科</p>';
+  },
+
+  summary: function(){
+    var a = adlSum(), i = iadlSum();
+    var alerts = buildAlerts();
+    var drf = drfSuspect();
+    var mct = mcTotal();
+    var e = S.ext;
+    var m = modeFinal();
+    var modeLabel = {self:'本人', family:'家族（発症前baseline聴取）', staff:'医療者補助', both:'本人＋家族'}[S.mode] || '—';
+
+    function tbl(items, defOpts){
+      var h = '<table class="sm"><tr><th>項目</th><th>回答（3択の元値）</th><th>sGA用2値</th></tr>';
+      items.forEach(function(it){
+        var v = S.raw[it.id];
+        var opts = it.opts || defOpts;
+        var reason = S.iadlReason[it.id];
+        var rTxt = reason ? '<br><small>理由：' + esc(optLabel(IADL_REASONS, reason)) + (reason==='acute'?' ★病勢由来側へ':'') + '</small>' : '';
+        h += '<tr><td>' + esc(it.label) + '</td><td>' + esc(optLabel(opts, v)) + rTxt + '</td>' +
+             '<td>' + (v==null?'未聴取':(bin(v)===1?'自立(1)':'介助(0)')) + '</td></tr>';
+      });
+      return h + '</table>';
+    }
+    function extRows(items){
+      return items.map(function(it){
+        return '<tr><td>' + esc(it.label) + '</td><td>' + esc(optLabel(it.opts, e[it.id])) + '</td></tr>';
+      }).join('');
+    }
+    var nextStep = {
+      short:'トリアージ全項目陰性。全例詳細評価は不要 — 通常フローで可。医療者判断でフル問診・sGA評価の追加も可能。',
+      standard:'要点確認済み。sGA評価（医療者用アプリ）へ反映。ADL/IADLの未聴取分はフル問診アプリまたは医療者聴取で補完してください。',
+      detail:'詳細評価実施済み（ADL/IADL全項目＋Mini-Cog）。sGA評価へそのまま反映可能です。'
+    }[m];
+
+    var html = header('医療者用サマリー') +
+      '<div class="warnbox">⚕️ この画面は医療者専用です。患者・家族には表示しないでください。</div>' +
+
+      '<div class="spanel"><h3>基本情報</h3>' +
+      '<table class="sm">' +
+      '<tr><td>研究ID</td><td><b>' + esc(S.researchId||'未設定') + '</b></td></tr>' +
+      '<tr><td>年齢区分</td><td>' + esc(S.ageBand||'未設定') + '</td></tr>' +
+      '<tr><td>入力者</td><td>' + modeLabel + '</td></tr>' +
+      '<tr><td>入力時期（粗化）</td><td>' + quarterStr(new Date()) + '</td></tr>' +
+      '</table></div>' +
+
+      '<div class="modebox">判定モード：' + MODE_LABEL[m] +
+      (S.modeOverride!=='auto' ? '（医療者が固定：自動判定は' + MODE_LABEL[modeAuto()] + '）' : '') +
+      (modeReasons().length ? '<br><span style="font-weight:400;font-size:17px;">根拠：' + modeReasons().map(esc).join('／') + '</span>' : '') +
+      '</div>' +
+
+      '<div class="spanel"><h3>6問トリアージ</h3><table class="sm">' +
+      '<tr><th>質問</th><th>回答</th><th>該当</th></tr>' +
+      TRIAGE.map(function(t,k){
+        var v = S.ext[t.id];
+        var flag = v!=null && t.flagOn.indexOf(v)>=0;
+        return '<tr><td>Q' + (k+1) + '　' + esc(t.qs) + '</td><td>' + esc(optLabel(t.opts, v)) + '</td>' +
+               '<td>' + (flag ? '⚠️ 該当' : '—') + '</td></tr>';
+      }).join('') + '</table></div>' +
+
+      (a.answered>0 ?
+      '<div class="spanel"><h3>ADL（聴取 ' + a.answered + '/6項目）　2値合計 ' + a.sum + ' / ' + a.answered + '</h3>' +
+      tbl(ALL_ADL.filter(function(it){return S.raw[it.id]!=null;}), OPT3) +
+      (a.answered<6 ? '<p style="font-size:16px;color:var(--sub);">未聴取：' + ALL_ADL.filter(function(it){return S.raw[it.id]==null;}).map(function(it){return it.label;}).join('・') + '（sGA確定には全6項目必要）</p>' : '') +
+      '</div>' : '') +
+
+      (i.answered>0 ?
+      '<div class="spanel"><h3>IADL（聴取 ' + i.answered + '/8項目）　2値合計 ' + i.sum + ' / ' + i.answered + '</h3>' +
+      tbl(ALL_IADL.filter(function(it){return S.raw[it.id]!=null;}), OPT3I) +
+      (i.answered<8 ? '<p style="font-size:16px;color:var(--sub);">未聴取：' + ALL_IADL.filter(function(it){return S.raw[it.id]==null;}).map(function(it){return it.label;}).join('・') + '（sGA確定には全8項目必要）</p>' : '') +
+      '</div>' : '') +
+
+      (Object.keys(e).some(function(k){return k.indexOf('ext_nut_')===0;}) ?
+      '<div class="spanel"><h3>栄養・体重</h3><table class="sm">' + extRows(NUT_CORE.concat(NUT_EXT).filter(function(it){return e[it.id]!=null;})) + '</table></div>' : '') +
+
+      (Object.keys(e).some(function(k){return k.indexOf('ext_med_')===0;}) ?
+      '<div class="spanel"><h3>服薬・通院</h3><table class="sm">' + extRows(MED_CORE.concat(MED_EXT).filter(function(it){return e[it.id]!=null;})) + '</table></div>' : '') +
+
+      '<div class="spanel"><h3>認知</h3><table class="sm">' +
+      '<tr><td>トリアージQ4</td><td>' + esc(optLabel(TRIAGE[3].opts, e.ext_triage_q4)) + '</td></tr>' +
+      '<tr><td>具体的エピソード</td><td>' +
+      (COG_MULTI.filter(function(c){return S.cogMulti[c.id];}).map(function(c){return esc(c.t);}).join('、') || 'なし／未聴取') +
+      '</td></tr></table>' +
+      (m==='detail' ?
+        (S.mc.skipped ? '<p>Mini-Cog：今回は未実施（医療者判断）</p>' :
+         (!S.mc.done ? '<p>Mini-Cog：未完了</p>' :
+          '<table class="sm" style="margin-top:8px;">' +
+          '<tr><td>語セット</td><td>' + esc(S.mc.wordset) + '（' + esc(S.mc.words.join('・')) + '）</td></tr>' +
+          '<tr><td>3語再生</td><td>' + S.mc.recall.filter(Boolean).length + ' / 3点</td></tr>' +
+          '<tr><td>時計描画</td><td>' + (S.mc.clock==null?'—':S.mc.clock + '点') + '（画像は保存されません）</td></tr>' +
+          '<tr><td><b>合計</b></td><td><b>' + mct + ' / 5点　' + (mct<=2?'→ 認知機能低下の可能性あり':'→ 明らかな異常なし') + '</b></td></tr>' +
+          '</table>'))
+        : '<p style="font-size:16px;color:var(--sub);">Mini-Cogは詳細モードでのみ実施（本症例：' + MODE_LABEL[m] + '）</p>') +
+      '</div>' +
+
+      (Object.keys(e).some(function(k){return k.indexOf('ext_soc_')===0;}) ?
+      '<div class="spanel"><h3>生活背景</h3><table class="sm">' + extRows(SOC_CORE.concat(SOC_EXT).filter(function(it){return e[it.id]!=null;})) + '</table></div>' : '') +
+
+      '<div class="spanel"><h3>最近の急な変化</h3>' +
+      '<table class="sm"><tr><td>トリアージQ6</td><td>' + esc(optLabel(TRIAGE[5].opts, e.ext_triage_q6)) + '</td></tr>' +
+      (S.acuteSymptoms.length ? '<tr><td>症状</td><td>' + S.acuteSymptoms.map(function(id){return esc(optLabel(ACUTE_SYMPTOMS.map(function(x){return {v:x.id,t:x.t};}), id));}).join('、') + '</td></tr>' : '') +
+      (S.acuteTiming ? '<tr><td>時期</td><td>' + esc(timingLabel()) + '</td></tr>' : '') +
+      '</table>' +
+      (drf.length ?
+        '<div class="alert"><span class="ic">📈</span><span><b>病勢由来frailty疑い</b><br>' +
+        drf.map(esc).join('<br>') +
+        '<br><small>※ sGA分類は変更しない。カンファでの上書き根拠として提示（prephase後再評価・支持療法検討）</small></span></div>'
+        : '<div class="info"><span class="ic">✔️</span>急性の機能低下は検出されていません。</div>') +
+      '</div>' +
+
+      '<div class="spanel"><h3>アラート（' + alerts.length + '件）</h3>' +
+      (alerts.length ? alerts.map(function(x){
+        return '<div class="alert"><span class="ic">' + x.icon + '</span><span>' + esc(x.text) + '</span></div>';
+      }).join('') : '<div class="info"><span class="ic">✔️</span>自動抽出されたアラートはありません。</div>') + '</div>' +
+
+      '<div class="spanel"><h3>次のステップ（推奨）</h3>' +
+      '<div class="info"><span class="ic">➡️</span>' + esc(nextStep) + '</div>' +
+      '<table class="sm">' +
+      '<tr><td>ADL合計（2値）</td><td><b>' + a.sum + ' / ' + a.answered + '聴取分</b>' + (a.answered<6?'（全6項目でsGA確定）':'') + '</td></tr>' +
+      '<tr><td>IADL合計（2値）</td><td><b>' + i.sum + ' / ' + i.answered + '聴取分</b>' + (i.answered<8?'（全8項目でsGA確定）':'') + '</td></tr>' +
+      '<tr><td>年齢・CIRS-G・CFS</td><td>医療者がsGAアプリで入力（本アプリでは扱わない）</td></tr>' +
+      '<tr><td>病勢由来frailtyフラグ</td><td>' + (drf.length?'<b>疑いあり</b>':'自動検出なし') + '</td></tr>' +
+      '</table></div>' +
+
+      '<div class="spanel"><h3>医療者メモ</h3>' +
+      '<input type="text" id="staffmemo" placeholder="確認事項・修正点など" value="' + esc(S.staffMemo) + '" onchange="S.staffMemo=this.value;">' +
+      '</div>' +
+
+      '<div class="info"><span class="ic">ℹ️</span>この結果は治療可否を自動判定するものではありません。' +
+      'CFS、CIRS-G、病勢由来frailty、本人希望を確認し、治療前カンファレンスで最終判断してください。</div>' +
+
+      '<div class="row2">' +
+      '<button class="btn primary" onclick="doSend()"' + (S.sent?' disabled':'') + '>' + (S.sent?'送信済み':'データ送信（方式B）') + '</button>' +
+      '<button class="btn secondary" onclick="togglePayload()">送信内容を確認</button>' +
+      '</div>' +
+      '<div id="payloadbox" style="display:none;"><pre class="payload">' + esc(JSON.stringify(buildPayload(),null,1)) + '</pre></div>' +
+      '<div id="sendmsg"></div>' +
+      '<button class="btn small" onclick="restartAll()">新しい入力を開始（回答を消去）</button>' +
+      '<p class="affil">旭川赤十字病院 血液腫瘍内科　方式B：研究ID＋問診データのみ送信。対応表は院内別管理。</p>';
+    app.innerHTML = html;
+  }
+};
+
+function render(){
+  var st = FLOW[S.idx];
+  RENDERERS[st.kind](st);
+}
+
+/* ---------------- イベントハンドラ ---------------- */
+function setupDone(){
+  var rid = document.getElementById('rid').value.trim();
+  if(!rid){ alert('研究IDを入力してください。'); return; }
+  var ab = document.getElementById('ageband').value;
+  if(!ab){ alert('年齢区分を選択してください（詳細モード判定に必要です）。'); return; }
+  S.researchId = rid;
+  S.ageBand = ab;
+  S.modeOverride = document.getElementById('movr').value;
+  S.gasUrl = document.getElementById('gurl').value.trim();
+  var sc = document.getElementById('scode').value.trim();
+  if(sc) S.staffCode = sc;
+  saveSettings();
+  next();
+}
+function chooseStart(m){ S.mode = m; next(); }
+function setMode(m){ S.mode = m; next(); }
+
+function answerChoice(k, btn){
+  var st = FLOW[S.idx], it = st.item, o = st.opts[k];
+  if(st.store==='raw') S.raw[it.id] = o.v; else S.ext[it.id] = o.v;
+  if(btn) btn.classList.add('picked');
+  if(st.iadl && o.v===0){ setTimeout(function(){ showIadlReason(it); }, 320); return; }
+  if(st.iadl) delete S.iadlReason[it.id];
+  setTimeout(next, 350);
+}
+function showIadlReason(it){
+  var q = (S.mode==='family') ? '患者さんが「' + it.label + '」を普段されていないのは、なぜですか？'
+                              : '「' + it.label + '」を普段されていないのは、なぜですか？';
+  var html = header('日常の用事について') + familyBanner() + '<div class="fade">' +
+    '<p class="qtext">' + esc(q) + '</p>';
+  IADL_REASONS.forEach(function(r,k){
+    var sel = (S.iadlReason[it.id]===r.v)?' sel':'';
+    html += '<button class="btn ' + r.cls + sel + '" onclick="setIadlReason(\'' + it.id + '\',\'' + r.v + '\',this)">' +
+      '<span class="num">' + (k+1) + '</span>' + esc(r.t) + '</button>';
+  });
+  html += '</div><div class="footer-nav"><button class="linkbtn" onclick="render()">← 前の質問にもどる</button></div>';
+  app.innerHTML = html;
+  window.scrollTo(0,0);
+}
+function setIadlReason(id, v, btn){
+  S.iadlReason[id] = v;
+  if(btn) btn.classList.add('picked');
+  setTimeout(next, 350);
+}
+function skipQ(){
+  var st = FLOW[S.idx];
+  if(st.item){
+    if(st.store==='raw'){ delete S.raw[st.item.id]; } else { delete S.ext[st.item.id]; }
+  }
+  next();
+}
+function toggleCog(id){ S.cogMulti[id] = !S.cogMulti[id]; SKIP_ANIM = true; render(); }
+function toggleAcute(id){
+  SKIP_ANIM = true;
+  if(id==='none'){ S.acuteSymptoms = (S.acuteSymptoms.indexOf('none')>=0) ? [] : ['none']; }
+  else{
+    var i = S.acuteSymptoms.indexOf(id);
+    if(i>=0) S.acuteSymptoms.splice(i,1); else S.acuteSymptoms.push(id);
+    var n = S.acuteSymptoms.indexOf('none');
+    if(n>=0) S.acuteSymptoms.splice(n,1);
+  }
+  render();
+}
+function setTiming(v, btn){ S.acuteTiming = v; if(btn) btn.classList.add('picked'); setTimeout(next, 350); }
+
+/* --- Mini-Cog --- */
+function mcStart(){ S.mc.skipped = false; next(); }
+function mcSkip(){
+  S.mc.skipped = true; S.mc.done = false;
+  document.body.classList.remove('noanim');
+  next();   // cond側で words〜staff を自動スキップ
+}
+function toggleRecall(k){ S.mc.recall[k] = !S.mc.recall[k]; render(); }
+function setClockScore(v){ S.mc.clock = v; render(); }
+function mcFinish(){
+  if(S.mc.clock==null){ return; }
+  S.mc.done = true;
+  document.body.classList.remove('noanim');
+  next();
+}
+
+/* --- 時計描画Canvas（ガイド線・数字候補・見本・自動補正なし） --- */
+var CV = {ctx:null, drawing:false, hasInk:false};
+function initClock(){
+  var cv = document.getElementById('clockcv');
+  var wrap = document.getElementById('clockwrap');
+  var w = Math.min(wrap.clientWidth || 700, 760);
+  var h = Math.min(Math.round(window.innerHeight*0.55), 560);
+  var dpr = window.devicePixelRatio || 1;
+  cv.width = w*dpr; cv.height = h*dpr;
+  cv.style.width = w+'px'; cv.style.height = h+'px';
+  var ctx = cv.getContext('2d');
+  ctx.scale(dpr,dpr);
+  ctx.lineWidth = 5;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#101040';
+  CV.ctx = ctx; CV.cv = cv; CV.hasInk = false;
+  function pos(ev){
+    var r = cv.getBoundingClientRect();
+    var p = (ev.touches && ev.touches[0]) ? ev.touches[0] : ev;
+    return {x: p.clientX - r.left, y: p.clientY - r.top};
+  }
+  function down(ev){ ev.preventDefault(); CV.drawing = true; CV.hasInk = true;
+    var p = pos(ev); CV.ctx.beginPath(); CV.ctx.moveTo(p.x,p.y); CV.ctx.lineTo(p.x+0.1,p.y+0.1); CV.ctx.stroke(); }
+  function move(ev){ if(!CV.drawing) return; ev.preventDefault();
+    var p = pos(ev); CV.ctx.lineTo(p.x,p.y); CV.ctx.stroke(); }
+  function up(ev){ CV.drawing = false; }
+  cv.addEventListener('pointerdown', down);
+  cv.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+  var rb = document.getElementById('redoBtn');
+  if(S.mc.redoUsed) rb.disabled = true;
+}
+function clockRedo(){
+  if(S.mc.redoUsed) return;
+  S.mc.redoUsed = true;
+  var cv = CV.cv;
+  CV.ctx.clearRect(0,0,cv.width,cv.height);
+  CV.hasInk = false;
+  document.getElementById('redoBtn').disabled = true;
+}
+function clockDone(){
+  if(!CV.hasInk){
+    if(!confirm('まだ何も描かれていません。このまま進みますか？')) return;
+  }
+  next();   // stroke・画像は保存しない
+}
+
+/* --- 完了・サマリー・送信 --- */
+function finishInput(){ next(); }
+function openSummary(){
+  var code = prompt('医療者用サマリーを表示します。閲覧コードを入力してください。');
+  if(code === null) return;
+  if(code === S.staffCode){ next(); }
+  else alert('コードが違います。');
+}
+function togglePayload(){
+  var b = document.getElementById('payloadbox');
+  b.style.display = (b.style.display==='none') ? 'block' : 'none';
+}
+function doSend(){
+  var m = document.getElementById('sendmsg');
+  m.innerHTML = '<div class="info"><span class="ic">⏳</span>送信中…</div>';
+  sendData(function(ok, err){
+    if(ok){
+      render();
+      document.getElementById('sendmsg').innerHTML = '<div class="info"><span class="ic">✔️</span>送信済み（研究ID：' + esc(S.researchId) + '）。院内シートで受信を確認してください。</div>';
+    }else{
+      m.innerHTML = '<div class="alert"><span class="ic">⚠️</span>送信できませんでした：' + esc(err) + '</div>';
+    }
+  });
+}
+function restartAll(){
+  if(!confirm('回答をすべて消去して、新しい入力を開始しますか？（設定は保持されます）')) return;
+  var keep = {gasUrl:S.gasUrl, staffCode:S.staffCode};
+  S = {researchId:'', gasUrl:keep.gasUrl, staffCode:keep.staffCode,
+    ageBand:'', modeOverride:'auto', mode:null,
+    raw:{}, iadlReason:{}, ext:{}, cogMulti:{},
+    acuteSymptoms:[], acuteTiming:null,
+    mc:{skipped:false, wordset:null, words:[], recall:[false,false,false], clock:null, redoUsed:false, done:false},
+    staffMemo:'', idx:0, hist:[], sent:false};
+  document.body.classList.remove('noanim');
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
