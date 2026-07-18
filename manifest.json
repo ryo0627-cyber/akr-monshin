@@ -1,0 +1,26 @@
+{
+  "name": "生活についての質問（旭川赤十字病院 血液腫瘍内科）",
+  "short_name": "生活問診",
+  "description": "高齢DLBCL 患者・家族入力型 生活機能問診アプリ（方式B）",
+  "start_url": "./monshin_triage_app.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#0072B2",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
