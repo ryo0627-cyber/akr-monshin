@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0072B2">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>生活についての質問（トリアージ版）— 旭川赤十字病院 血液腫瘍内科</title>
 <style>
 /* ===== Wong colorblind-safe palette（確定事項） ===== */
@@ -99,9 +102,6 @@ label.fl{font-size:18px;font-weight:700;color:var(--sub);}
 .center{text-align:center;}
 .affil{font-size:15px;color:var(--sub);text-align:center;margin-top:18px;}
 </style>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0072B2">
-<link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
 <div id="app"></div>
@@ -127,7 +127,7 @@ label.fl{font-size:18px;font-weight:700;color:var(--sub);}
 ===================================================================== */
 
 var LSKEY = 'monshinTriage_settings_v1';
-var APP_VERSION = 'triage-B-1.0';
+var APP_VERSION = 'triage-B-1.2';
 
 /* ---------------- 状態 ---------------- */
 var S = {
@@ -138,8 +138,7 @@ var S = {
   acuteSymptoms:[], acuteTiming:null,
   mc:{skipped:false, wordset:null, words:[], recall:[false,false,false], clock:null, redoUsed:false, done:false},
   staffMemo:'', idx:0, hist:[], sent:false,
-  autoFilled:{},                      // トリアージ回答から自動導出した項目（重複質問の回避用）
-  active:false                        // 問診中フラグ（途中終了防止）
+  timing:{startMs:null, lastMs:null, lastKey:null, perSec:{}}   // 所要時間（②）
 };
 (function loadSettings(){
   try{
@@ -293,7 +292,7 @@ var NUT_CORE = [
    qs:'最近3か月で、体重はどのくらい減りましたか？', qf:'最近3か月で、患者さんの体重はどのくらい減りましたか？',
    opts:[{v:'none',t:'減っていない',cls:''},{v:'1-3kg',t:'1〜3kgくらい減った',cls:'o2'},{v:'3kg+',t:'3kg以上減った',cls:'o3'},{v:'unknown',t:'わからない',cls:'o4'}]},
   {id:'ext_nut_intake', label:'食事の量',
-   qs:'食事の量は、どのくらいになっていますか？', qf:'患者さんの食事の量は、どのくらいになっていますか？',
+   qs:'最近、食事の量は減っていますか？', qf:'最近、患者さんの食事の量は減っていますか？',
    opts:[{v:'normal',t:'いつも通り食べている',cls:''},{v:'half',t:'半分くらいに減った',cls:'o2'},{v:'little',t:'ほとんど食べられない',cls:'o3'},{v:'varies',t:'日によって大きく違う',cls:'o4'}]},
   {id:'ext_nut_appetite', label:'食欲',
    qs:'最近、食欲はありますか？', qf:'最近、患者さんに食欲はありますか？',
@@ -426,12 +425,7 @@ function buildFlow(){
   ADL_EXT.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'raw', sec:'生活の動作（つづき）', pos:[i,3], opts:it.opts||OPT3, cond:mDetail}); });
   IADL_CORE.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'raw', sec:'日常の用事について', pos:[i,4], opts:OPT3I, iadl:true, cond:mNotShort}); });
   IADL_EXT.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'raw', sec:'日常の用事（つづき）', pos:[i,4], opts:OPT3I, iadl:true, cond:mDetail}); });
-  NUT_CORE.forEach(function(it,i){
-    // 体重(wtloss)・食事量(intake)はトリアージQ3と重複。Q3が「減っていない」なら再質問しない（Q3から導出）
-    var dupNut = (it.id==='ext_nut_wtloss' || it.id==='ext_nut_intake');
-    FLOW.push({kind:'choice', item:it, store:'ext', sec:'食事と体重について', pos:[i,4], opts:it.opts,
-      cond: dupNut ? function(){ return mNotShort() && S.ext.ext_triage_q3!=='no'; } : mNotShort});
-  });
+  NUT_CORE.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'ext', sec:'食事と体重について', pos:[i,4], opts:it.opts, cond:mNotShort}); });
   NUT_EXT.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'ext', sec:'食事と体重（つづき）', pos:[i,3], opts:it.opts, cond:mDetail}); });
   MED_CORE.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'ext', sec:'お薬と通院について', pos:[i,3], opts:it.opts, cond:mNotShort}); });
   MED_EXT.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'ext', sec:'お薬と通院（つづき）', pos:[i,3], opts:it.opts, cond:mDetail}); });
@@ -442,12 +436,7 @@ function buildFlow(){
   FLOW.push({kind:'mc_clock',  cond:function(){ return mDetail() && !S.mc.skipped; }});
   FLOW.push({kind:'mc_recall', cond:function(){ return mDetail() && !S.mc.skipped; }});
   FLOW.push({kind:'mc_staff',  cond:function(){ return mDetail() && !S.mc.skipped; }});
-  SOC_CORE.forEach(function(it,i){
-    // 独居(alone)・支援者(support)はトリアージQ5と重複。Q5が「いいえ（支えあり・独居でない）」なら再質問しない
-    var dupSoc = (it.id==='ext_soc_alone' || it.id==='ext_soc_support');
-    FLOW.push({kind:'choice', item:it, store:'ext', sec:'暮らしの様子について', pos:[i,5], opts:it.opts,
-      cond: dupSoc ? function(){ return mNotShort() && S.ext.ext_triage_q5!=='no'; } : mNotShort});
-  });
+  SOC_CORE.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'ext', sec:'暮らしの様子について', pos:[i,5], opts:it.opts, cond:mNotShort}); });
   SOC_EXT.forEach(function(it,i){ FLOW.push({kind:'choice', item:it, store:'ext', sec:'暮らしの様子（つづき）', pos:[i,4], opts:it.opts, cond:mDetail}); });
   FLOW.push({kind:'acute_sym', sec:'最近の変化について', pos:[0,2],
     cond:function(){ return mNotShort() && triageFlag('acute'); }});
@@ -474,23 +463,7 @@ function speak(text){
 function qText(it){ return (S.mode==='family') ? (it.qf||it.qs) : it.qs; }
 function quarterStr(d){ return d.getFullYear() + 'Q' + (Math.floor(d.getMonth()/3)+1); }
 function go(i){ S.hist.push(S.idx); S.idx = i; render(); window.scrollTo(0,0); }
-/* トリアージ回答から重複項目を自動導出（Q3陰性→栄養/ Q5陰性→独居・支援）。
-   手入力値は autoFilled に載らないので上書きしない。Q回答が変われば導出を撤回。 */
-function reconcileTriage(){
-  function autoset(key, val, condTrue){
-    if(condTrue){
-      if(S.ext[key]===undefined || S.autoFilled[key]){ S.ext[key]=val; S.autoFilled[key]=true; }
-    }else{
-      if(S.autoFilled[key]){ delete S.ext[key]; delete S.autoFilled[key]; }
-    }
-  }
-  autoset('ext_nut_wtloss','none',  S.ext.ext_triage_q3==='no');   // 体重減少なし
-  autoset('ext_nut_intake','normal',S.ext.ext_triage_q3==='no');   // 食事量いつも通り
-  autoset('ext_soc_alone','no',     S.ext.ext_triage_q5==='no');   // 独居でない
-  autoset('ext_soc_support','yes',  S.ext.ext_triage_q5==='no');   // 支援者あり
-}
 function next(){
-  reconcileTriage();
   var i = S.idx + 1;
   while(i < FLOW.length-1 && FLOW[i].cond && !FLOW[i].cond()) i++;
   go(i);
@@ -614,6 +587,15 @@ function buildPayload(){
   p.drf_suspect_auto = drfSuspect().length ? 1 : 0;
   p.ext_staff_memo = S.staffMemo || '';
   p.alerts_auto = buildAlerts().map(function(x){return x.text;}).join(' / ');
+  // ② 所要時間（全体＋画面ごと）。S.timingは変更せずスナップショットで算出（確認プレビューでも安全）
+  var _tnow = Date.now();
+  var _secs = {};
+  Object.keys(S.timing.perSec).forEach(function(k){ _secs[k] = Math.round(S.timing.perSec[k]/1000); });
+  if(S.timing.lastMs!=null && S.timing.lastKey!=null){
+    _secs[S.timing.lastKey] = (_secs[S.timing.lastKey]||0) + Math.round((_tnow - S.timing.lastMs)/1000);
+  }
+  p.time_total_sec = S.timing.startMs ? Math.round((_tnow - S.timing.startMs)/1000) : '';
+  p.ext_screen_times = JSON.stringify(_secs);
   return p;
 }
 function sendData(cb){
@@ -854,7 +836,6 @@ var RENDERERS = {
   },
 
   done: function(){
-    S.active = false;   // 入力完了。以降は離脱警告を出さない
     app.innerHTML =
       '<div class="fade center">' +
       '<div class="bigcheck">✅</div>' +
@@ -988,16 +969,15 @@ var RENDERERS = {
       '</table></div>' +
 
       '<div class="spanel"><h3>医療者メモ</h3>' +
-      '<input type="text" id="staffmemo" placeholder="確認事項・修正点など" value="' + esc(S.staffMemo) + '" onchange="S.staffMemo=this.value;">' +
+      '<p style="margin:0 0 6px;font-size:13px;font-weight:bold;color:#B77500;">⚠️ 氏名・カルテ ID・生年月日は記入しないでください（研究用の番号のみで管理します）。</p>' +
+      '<input type="text" id="staffmemo" placeholder="確認事項・修正点など（氏名・カルテIDは記入しない）" value="' + esc(S.staffMemo) + '" onchange="S.staffMemo=this.value;">' +
       '</div>' +
 
       '<div class="info"><span class="ic">ℹ️</span>この結果は治療可否を自動判定するものではありません。' +
       'CFS、CIRS-G、病勢由来frailty、本人希望を確認し、治療前カンファレンスで最終判断してください。</div>' +
 
-      '<button class="btn primary" onclick="copyReport()">📋 サマリーをコピー（Word・カルテに貼り付け）</button>' +
-      '<div id="copymsg"></div>' +
       '<div class="row2">' +
-      '<button class="btn secondary" onclick="doSend()"' + (S.sent?' disabled':'') + '>' + (S.sent?'送信済み':'データ送信（方式B）') + '</button>' +
+      '<button class="btn primary" onclick="doSend()"' + (S.sent?' disabled':'') + '>' + (S.sent?'送信済み':'データ送信（方式B）') + '</button>' +
       '<button class="btn secondary" onclick="togglePayload()">送信内容を確認</button>' +
       '</div>' +
       '<div id="payloadbox" style="display:none;"><pre class="payload">' + esc(JSON.stringify(buildPayload(),null,1)) + '</pre></div>' +
@@ -1009,7 +989,14 @@ var RENDERERS = {
 };
 
 function render(){
+  // ② 画面ごとの滞在時間を加算（離れる画面に、前回入場からの経過を足す）
+  var _now = Date.now();
+  if(S.timing.lastMs!=null && S.timing.lastKey!=null){
+    S.timing.perSec[S.timing.lastKey] = (S.timing.perSec[S.timing.lastKey]||0) + (_now - S.timing.lastMs);
+  }
   var st = FLOW[S.idx];
+  S.timing.lastKey = st.sec || st.kind;   // choice画面はセクション名、特殊画面はkindで集計
+  S.timing.lastMs = _now;
   RENDERERS[st.kind](st);
 }
 
@@ -1026,10 +1013,12 @@ function setupDone(){
   var sc = document.getElementById('scode').value.trim();
   if(sc) S.staffCode = sc;
   saveSettings();
+  // ② 問診開始＝設定完了の時点から計測開始（設定作業の時間は含めない）
+  S.timing = {startMs:Date.now(), lastMs:null, lastKey:null, perSec:{}};
   next();
 }
-function chooseStart(m){ S.mode = m; S.active = true; next(); }
-function setMode(m){ S.mode = m; S.active = true; next(); }
+function chooseStart(m){ S.mode = m; next(); }
+function setMode(m){ S.mode = m; next(); }
 
 function answerChoice(k, btn){
   var st = FLOW[S.idx], it = st.item, o = st.opts[k];
@@ -1142,101 +1131,6 @@ function clockDone(){
   next();   // stroke・画像は保存しない
 }
 
-/* --- サマリーのプレーンテキスト生成（Word・カルテ貼り付け用） --- */
-function buildReportText(){
-  var a = adlSum(), i = iadlSum(), e = S.ext, m = modeFinal();
-  var L = [];
-  L.push('■ 高齢DLBCL 治療前 生活機能問診サマリー');
-  L.push('（旭川赤十字病院 血液腫瘍内科　方式B）');
-  L.push('研究ID：' + (S.researchId||'未設定') + '　入力時期：' + quarterStr(new Date()));
-  var modeLabel = {self:'本人', family:'家族（発症前baseline）', staff:'医療者補助', both:'本人＋家族'}[S.mode] || '—';
-  L.push('入力者：' + modeLabel + '　年齢区分：' + (S.ageBand||'未設定'));
-  L.push('判定モード：' + MODE_LABEL[m] + (S.modeOverride!=='auto' ? '（医療者固定）' : '（自動判定）'));
-  if(modeReasons().length) L.push('　根拠：' + modeReasons().join('／'));
-  L.push('');
-  L.push('【6問トリアージ】');
-  TRIAGE.forEach(function(t,k){
-    var v = e[t.id]; var flag = v!=null && t.flagOn.indexOf(v)>=0;
-    L.push(' Q' + (k+1) + '. ' + optLabel(t.opts, v) + (flag?'　⚠該当':''));
-  });
-  L.push('');
-  if(a.answered>0){
-    L.push('【ADL】2値合計 ' + a.sum + '/' + a.answered + '（聴取分）' + (a.answered<6?'　※全6項目でsGA確定':''));
-    ALL_ADL.forEach(function(it){ var v=S.raw[it.id]; if(v!=null) L.push(' ・' + it.label + '：' + optLabel(it.opts||OPT3,v) + '（' + (bin(v)===1?'自立1':'介助0') + '）'); });
-    L.push('');
-  }
-  if(i.answered>0){
-    L.push('【IADL】2値合計 ' + i.sum + '/' + i.answered + '（聴取分）' + (i.answered<8?'　※全8項目でsGA確定':''));
-    ALL_IADL.forEach(function(it){ var v=S.raw[it.id]; if(v!=null){
-      var r=S.iadlReason[it.id]; L.push(' ・' + it.label + '：' + optLabel(OPT3I,v) + '（' + (bin(v)===1?'自立1':'介助0') + '）' + (r?'／理由:'+optLabel(IADL_REASONS,r)+(r==='acute'?'★病勢由来':''):'')); }});
-    L.push('');
-  }
-  function block(title, items){
-    var rows = items.filter(function(it){return e[it.id]!=null;});
-    if(!rows.length) return;
-    L.push('【' + title + '】');
-    rows.forEach(function(it){ L.push(' ・' + it.label + '：' + optLabel(it.opts, e[it.id]) + (S.autoFilled[it.id]?'（トリアージより）':'')); });
-    L.push('');
-  }
-  block('栄養・体重', NUT_CORE.concat(NUT_EXT));
-  block('服薬・通院', MED_CORE.concat(MED_EXT));
-  L.push('【認知】');
-  L.push(' ・トリアージQ4：' + optLabel(TRIAGE[3].opts, e.ext_triage_q4));
-  var cogEp = COG_MULTI.filter(function(c){return S.cogMulti[c.id];}).map(function(c){return c.t;});
-  L.push(' ・具体的エピソード：' + (cogEp.length?cogEp.join('、'):'なし／未聴取'));
-  var mct = mcTotal();
-  if(m==='detail'){
-    if(S.mc.skipped) L.push(' ・Mini-Cog：未実施（医療者判断）');
-    else if(!S.mc.done) L.push(' ・Mini-Cog：未完了');
-    else L.push(' ・Mini-Cog：3語再生 ' + S.mc.recall.filter(Boolean).length + '/3、時計 ' + (S.mc.clock==null?'—':S.mc.clock) + '、合計 ' + mct + '/5' + (mct<=2?'（認知機能低下の可能性）':'（明らかな異常なし）'));
-  }
-  L.push('');
-  block('生活背景', SOC_CORE.concat(SOC_EXT));
-  L.push('【最近の急な変化】');
-  L.push(' ・トリアージQ6：' + optLabel(TRIAGE[5].opts, e.ext_triage_q6));
-  if(S.acuteSymptoms.length) L.push(' ・症状：' + S.acuteSymptoms.map(function(id){return optLabel(ACUTE_SYMPTOMS.map(function(x){return {v:x.id,t:x.t};}),id);}).join('、'));
-  if(S.acuteTiming) L.push(' ・時期：' + timingLabel());
-  var drf = drfSuspect();
-  if(drf.length){ L.push(' ・病勢由来frailty疑い：'); drf.forEach(function(d){ L.push('   - ' + d); }); L.push('   ※sGA分類は変更せず、カンファ上書き根拠として提示'); }
-  L.push('');
-  var alerts = buildAlerts();
-  L.push('【アラート（' + alerts.length + '件）】');
-  if(alerts.length) alerts.forEach(function(x){ L.push(' ・' + x.text); }); else L.push(' ・なし');
-  L.push('');
-  L.push('【sGA評価への反映】');
-  L.push(' ・ADL合計(2値)：' + a.sum + '/' + a.answered + '聴取' + (a.answered<6?'（全6でsGA確定）':''));
-  L.push(' ・IADL合計(2値)：' + i.sum + '/' + i.answered + '聴取' + (i.answered<8?'（全8でsGA確定）':''));
-  L.push(' ・年齢/CIRS-G/CFS：医療者がsGAアプリで入力');
-  L.push(' ・病勢由来frailty：' + (drf.length?'疑いあり':'自動検出なし'));
-  if(S.staffMemo) { L.push(''); L.push('【医療者メモ】' + S.staffMemo); }
-  L.push('');
-  L.push('※本結果は治療可否を自動判定するものではありません。CFS・CIRS-G・病勢由来frailty・本人希望を確認し、治療前カンファレンスで最終判断してください。');
-  return L.join('\n');
-}
-function copyReport(){
-  var text = buildReportText();
-  var msg = document.getElementById('copymsg');
-  function ok(){ if(msg) msg.innerHTML = '<div class="info"><span class="ic">✔️</span>コピーしました。Word・メモ・電子カルテに貼り付けできます。</div>'; }
-  function fail(){ if(msg) msg.innerHTML = '<div class="warnbox">自動コピーできませんでした。下の枠を長押し→全選択→コピーしてください。<br><textarea style="width:100%;height:180px;font-size:14px;" onclick="this.select()">' + esc(text) + '</textarea></div>'; }
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(text).then(ok).catch(function(){
-      if(legacyCopy(text)) ok(); else fail();
-    });
-  }else{
-    if(legacyCopy(text)) ok(); else fail();
-  }
-}
-function legacyCopy(text){
-  try{
-    var ta = document.createElement('textarea');
-    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
-    document.body.appendChild(ta); ta.focus(); ta.select();
-    var okc = document.execCommand('copy');
-    document.body.removeChild(ta);
-    return okc;
-  }catch(e){ return false; }
-}
-
 /* --- 完了・サマリー・送信 --- */
 function finishInput(){ next(); }
 function openSummary(){
@@ -1269,37 +1163,20 @@ function restartAll(){
     raw:{}, iadlReason:{}, ext:{}, cogMulti:{},
     acuteSymptoms:[], acuteTiming:null,
     mc:{skipped:false, wordset:null, words:[], recall:[false,false,false], clock:null, redoUsed:false, done:false},
-    staffMemo:'', idx:0, hist:[], sent:false, autoFilled:{}, active:false};
+    staffMemo:'', idx:0, hist:[], sent:false,
+    timing:{startMs:null, lastMs:null, lastKey:null, perSec:{}}};
   document.body.classList.remove('noanim');
   render();
 }
 
 render();
+</script>
 
-/* --- 途中終了・誤操作の防止 --- */
-// 問診中にタブを閉じる・再読込・戻る操作をしようとしたら確認ダイアログを出す
-window.addEventListener('beforeunload', function(e){
-  if(S.active){
-    e.preventDefault();
-    e.returnValue = '入力中です。このページを離れると、入力内容が消えてしまいます。';
-    return e.returnValue;
-  }
-});
-// iOSでの「戻る」スワイプ等による離脱も一段抑止（履歴を積んで popstate を捕捉）
-try{ history.pushState(null, '', location.href); }catch(_){}
-window.addEventListener('popstate', function(){
-  if(S.active){
-    history.pushState(null, '', location.href);   // 離脱させず、その場に留める
-    if(S.hist.length){ back(); }                  // アプリ内の「前へ」として扱う
-  }
-});
-
-/* --- Service Worker 登録（オフライン対応） --- */
-if('serviceWorker' in navigator){
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('sw.js').catch(function(e){
-      console.log('SW登録スキップ（file://等では動作しません）:', e);
-    });
+<script>
+/* PWA: Service Worker 登録（オフライン起動） */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function(){ /* 圏外初回等は無視 */ });
   });
 }
 </script>
