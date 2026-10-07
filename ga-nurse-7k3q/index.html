@@ -16,23 +16,77 @@ figure{margin:16px 0}
 figure img{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:8px}
 figcaption{font-size:13px;color:var(--sub);margin-top:4px}
 footer{padding:0 16px 32px;font-size:13px;color:var(--sub);text-align:center}
+
+figure img{cursor:zoom-in}
+#vw{position:fixed;inset:0;background:#10151a;display:none;z-index:10;touch-action:pan-x pan-y pinch-zoom;user-select:none;-webkit-user-select:none}
+#vw.on{display:block}
+#vw img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;border:0;border-radius:0;cursor:default}
+#vw .bar{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:center;padding:10px 12px;color:#fff;font-size:16px;pointer-events:none;z-index:2}#vw .bar>*{pointer-events:auto}#cnt{background:#000a;padding:8px 14px;border-radius:10px}
+#vw button{font:inherit;color:#fff;background:#ffffff26;border:1px solid #ffffff55;border-radius:10px;padding:10px 16px;min-width:56px;min-height:44px}
+#vw .nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2;padding:22px 12px;font-size:22px}
+#vw .prev{left:6px}#vw .next{right:6px}
+#vw .hint{position:absolute;bottom:10px;left:0;right:0;text-align:center;color:#ffffffbb;font-size:13px;z-index:2}
 </style></head><body>
 <header>
 <h1>高齢者機能評価（GA）研究のご紹介</h1>
 <p class="meta">旭川赤十字病院 血液腫瘍内科　看護師向け勉強会</p>
 <a class="dl" href="GA_nurse_seminar.pdf">PDFをダウンロード</a>
-<p class="meta">画像をタップすると拡大できます。スマホは横向きにすると読みやすくなります。</p>
+<p class="meta">スライドをタップすると全画面で表示され、左右スワイプで前後に移動できます。スマホは横向きにすると読みやすくなります。</p>
 </header>
 <main>
-<figure><a href="slides/s01.jpg"><img src="slides/s01.jpg" alt="スライド1：表紙" loading="lazy"></a><figcaption>1 / 11　表紙</figcaption></figure>
-<figure><a href="slides/s02.jpg"><img src="slides/s02.jpg" alt="スライド2：簡易老年医学的評価（sGA）とは" loading="lazy"></a><figcaption>2 / 11　簡易老年医学的評価（sGA）とは</figcaption></figure>
-<figure><a href="slides/s03.jpg"><img src="slides/s03.jpg" alt="スライド3：なぜ高齢者機能評価が必要か" loading="lazy"></a><figcaption>3 / 11　なぜ高齢者機能評価が必要か</figcaption></figure>
-<figure><a href="slides/s04.jpg"><img src="slides/s04.jpg" alt="スライド4：治療の最適化は2つの方向から" loading="lazy"></a><figcaption>4 / 11　治療の最適化は2つの方向から</figcaption></figure>
-<figure><a href="slides/s05.jpg"><img src="slides/s05.jpg" alt="スライド5：研究の概要" loading="lazy"></a><figcaption>5 / 11　研究の概要</figcaption></figure>
-<figure><a href="slides/s06.jpg"><img src="slides/s06.jpg" alt="スライド6：新規性：sGA以外の要因も探索" loading="lazy"></a><figcaption>6 / 11　新規性：sGA以外の要因も探索</figcaption></figure>
-<figure><a href="slides/s07.jpg"><img src="slides/s07.jpg" alt="スライド7：2種類の弱り" loading="lazy"></a><figcaption>7 / 11　2種類の弱り</figcaption></figure>
-<figure><a href="slides/s08.jpg"><img src="slides/s08.jpg" alt="スライド8：当科の治療フロー（案）" loading="lazy"></a><figcaption>8 / 11　当科の治療フロー（案）</figcaption></figure>
-<figure><a href="slides/s09.jpg"><img src="slides/s09.jpg" alt="スライド9：問診アプリの画面" loading="lazy"></a><figcaption>9 / 11　問診アプリの画面</figcaption></figure>
-<figure><a href="slides/s10.jpg"><img src="slides/s10.jpg" alt="スライド10：研究の先に" loading="lazy"></a><figcaption>10 / 11　研究の先に</figcaption></figure>
-<figure><a href="slides/s11.jpg"><img src="slides/s11.jpg" alt="スライド11：現場の流れとお願い" loading="lazy"></a><figcaption>11 / 11　現場の流れとお願い</figcaption></figure>
-</main><footer>UMIN000062924　旭川赤十字病院 血液腫瘍内科</footer></body></html>
+<figure><img src="slides/s01.jpg" alt="スライド1：表紙" loading="lazy" data-full="slides/s01.jpg" tabindex="0" role="button"><figcaption>1 / 11　表紙</figcaption></figure>
+<figure><img src="slides/s02.jpg" alt="スライド2：簡易老年医学的評価（sGA）とは" loading="lazy" data-full="slides/s02.jpg" tabindex="0" role="button"><figcaption>2 / 11　簡易老年医学的評価（sGA）とは</figcaption></figure>
+<figure><img src="slides/s03.jpg" alt="スライド3：なぜ高齢者機能評価が必要か" loading="lazy" data-full="slides/s03.jpg" tabindex="0" role="button"><figcaption>3 / 11　なぜ高齢者機能評価が必要か</figcaption></figure>
+<figure><img src="slides/s04.jpg" alt="スライド4：治療の最適化は2つの方向から" loading="lazy" data-full="slides/s04.jpg" tabindex="0" role="button"><figcaption>4 / 11　治療の最適化は2つの方向から</figcaption></figure>
+<figure><img src="slides/s05.jpg" alt="スライド5：研究の概要" loading="lazy" data-full="slides/s05.jpg" tabindex="0" role="button"><figcaption>5 / 11　研究の概要</figcaption></figure>
+<figure><img src="slides/s06.jpg" alt="スライド6：新規性：sGA以外の要因も探索" loading="lazy" data-full="slides/s06.jpg" tabindex="0" role="button"><figcaption>6 / 11　新規性：sGA以外の要因も探索</figcaption></figure>
+<figure><img src="slides/s07.jpg" alt="スライド7：2種類の弱り" loading="lazy" data-full="slides/s07.jpg" tabindex="0" role="button"><figcaption>7 / 11　2種類の弱り</figcaption></figure>
+<figure><img src="slides/s08.jpg" alt="スライド8：当科の治療フロー（案）" loading="lazy" data-full="slides/s08.jpg" tabindex="0" role="button"><figcaption>8 / 11　当科の治療フロー（案）</figcaption></figure>
+<figure><img src="slides/s09.jpg" alt="スライド9：問診アプリの画面" loading="lazy" data-full="slides/s09.jpg" tabindex="0" role="button"><figcaption>9 / 11　問診アプリの画面</figcaption></figure>
+<figure><img src="slides/s10.jpg" alt="スライド10：研究の先に" loading="lazy" data-full="slides/s10.jpg" tabindex="0" role="button"><figcaption>10 / 11　研究の先に</figcaption></figure>
+<figure><img src="slides/s11.jpg" alt="スライド11：現場の流れとお願い" loading="lazy" data-full="slides/s11.jpg" tabindex="0" role="button"><figcaption>11 / 11　現場の流れとお願い</figcaption></figure>
+</main><footer>UMIN000062924　旭川赤十字病院 血液腫瘍内科</footer>
+<div id="vw" aria-hidden="true">
+<div class="bar"><span id="cnt">1 / 11</span><button id="x" type="button">閉じる</button></div>
+<img id="big" alt="">
+<button class="nav prev" id="pv" type="button" aria-label="前のスライド">◀</button>
+<button class="nav next" id="nx" type="button" aria-label="次のスライド">▶</button>
+<div class="hint">左右スワイプ／◀▶で移動　ピンチで拡大</div>
+</div>
+<script>
+(function(){
+var imgs=[].slice.call(document.querySelectorAll('figure img'));
+var N=imgs.length,i=0,vw=document.getElementById('vw'),big=document.getElementById('big'),cnt=document.getElementById('cnt');
+function show(n){
+  i=(n+N)%N; big.src=imgs[i].getAttribute('data-full'); big.alt=imgs[i].alt;
+  cnt.textContent=(i+1)+' / '+N;
+  [i+1,i-1].forEach(function(k){var p=new Image();p.src=imgs[(k+N)%N].getAttribute('data-full');});
+  try{history.replaceState(null,'','#'+(i+1));}catch(e){}
+}
+function open(n){show(n);vw.classList.add('on');vw.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}
+function close(){vw.classList.remove('on');vw.setAttribute('aria-hidden','true');document.body.style.overflow='';}
+imgs.forEach(function(im,k){
+  im.addEventListener('click',function(){open(k);});
+  im.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();open(k);}});
+});
+document.getElementById('x').onclick=close;
+document.getElementById('pv').onclick=function(e){e.stopPropagation();show(i-1);};
+document.getElementById('nx').onclick=function(e){e.stopPropagation();show(i+1);};
+document.addEventListener('keydown',function(e){
+  if(!vw.classList.contains('on'))return;
+  if(e.key==='ArrowLeft')show(i-1); else if(e.key==='ArrowRight'||e.key===' ')show(i+1); else if(e.key==='Escape')close();
+});
+var sx=0,sy=0,multi=false;
+vw.addEventListener('touchstart',function(e){multi=e.touches.length>1;if(!multi){sx=e.touches[0].clientX;sy=e.touches[0].clientY;}},{passive:true});
+vw.addEventListener('touchmove',function(e){if(e.touches.length>1)multi=true;},{passive:true});
+vw.addEventListener('touchend',function(e){
+  var z=window.visualViewport?window.visualViewport.scale:1;
+  if(multi||z>1.05||e.changedTouches.length!==1)return;
+  var dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5){show(dx<0?i+1:i-1);}
+},{passive:true});
+var h=parseInt((location.hash||'').slice(1),10);
+if(h>=1&&h<=N)open(h-1);
+})();
+</script>
+</body></html>
